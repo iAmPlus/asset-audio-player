@@ -259,9 +259,6 @@ class AssetsAudioPlayer {
 
   Duration _lastSeek;
 
-  Future<String> Function(Audio) onPlay;
-  Future Function() onStop;
-
   /// returns the looping state : true -> looping, false -> not looping
   bool get loop => _loop.value;
   bool get shuffle => _shuffle.value;
@@ -312,7 +309,6 @@ class AssetsAudioPlayer {
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
     _realTimeSubscription?.cancel();
-    onStop();
     _players.remove(this.id);
   }
 
@@ -587,22 +583,11 @@ class AssetsAudioPlayer {
     final currentAudio = _lastOpenedAssetsAudio;
     if (audio != null) {
       _respectSilentMode = respectSilentMode;
-      String path;
-      if (onPlay != null) {
-        try {
-          path = await onPlay(audio);
-        } catch (e) {
-          print(e);
-          return Future.error(e);
-        }
-      } else {
-        path = audio.path;
-      }
       try {
         Map<String, dynamic> params = {
           "id": this.id,
           "audioType": audio.audioType.description(),
-          "path": path,
+          "path": audio.path,
           "autoStart": autoStart,
           "respectSilentMode": respectSilentMode,
           "displayNotification": showNotification,
