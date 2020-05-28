@@ -94,6 +94,9 @@ class AssetsAudioPlayer {
     }
   }
 
+  Future<String> Function(Audio) onPlay;
+  Future Function() onStop;
+
   factory AssetsAudioPlayer.newPlayer() => _getOrCreate(id: uuid.v4());
 
   /// empty constructor now create a new player
@@ -312,6 +315,7 @@ class AssetsAudioPlayer {
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
     _realTimeSubscription?.cancel();
+    onStop();
     _players.remove(this.id);
 
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
@@ -633,11 +637,22 @@ class AssetsAudioPlayer {
     final currentAudio = _lastOpenedAssetsAudio;
     if (audio != null) {
       _respectSilentMode = respectSilentMode;
+      String path;
+      if (onPlay != null) {
+        try {
+          path = await onPlay(audio);
+        } catch (e) {
+          print(e);
+          return Future.error(e);
+        }
+      } else {
+        path = audio.path;
+      }
       try {
         Map<String, dynamic> params = {
           "id": this.id,
           "audioType": audio.audioType.description(),
-          "path": audio.path,
+          "path": path,
           "autoStart": autoStart,
           "respectSilentMode": respectSilentMode,
           "displayNotification": showNotification,
