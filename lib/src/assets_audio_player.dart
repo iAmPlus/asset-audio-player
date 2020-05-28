@@ -687,29 +687,14 @@ class AssetsAudioPlayer {
     _lastSeek = null;
     _replaceRealtimeSubscription();
     this._playlist = _CurrentPlaylist(
-<<<<<<< HEAD
-      playlist: playlist,
-      volume: volume,
-      respectSilentMode: respectSilentMode,
-      showNotification: showNotification,
-      playSpeed: playSpeed,
-      notificationSettings: notificationSettings
-    );
-    _playlist.clearPlayeAudio(shuffle);
-=======
         playlist: playlist,
         volume: volume,
         respectSilentMode: respectSilentMode,
         showNotification: showNotification,
         playSpeed: playSpeed,
-<<<<<<< HEAD
-        notificationSettings: notificationSettings);
->>>>>>> formatted code
-=======
         notificationSettings: notificationSettings,
         playInBackground: playInBackground);
     _playlist.clearPlayerAudio(shuffle);
->>>>>>> implemented play in background
     _playlist.moveTo(playlist.startIndex);
     return _openPlaylistCurrent(autoStart: autoStart, seek: seek);
   }
