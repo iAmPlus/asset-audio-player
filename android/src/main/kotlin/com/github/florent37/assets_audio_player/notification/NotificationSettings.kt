@@ -6,10 +6,7 @@ class NotificationSettings(
         val nextEnabled: Boolean,
         val playPauseEnabled: Boolean,
         val prevEnabled: Boolean,
-<<<<<<< HEAD
-=======
         val seekBarEnabled: Boolean,
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 
         //android only
         val stopEnabled: Boolean
@@ -29,11 +26,7 @@ fun fetchNotificationSettings(from: Map<*, *>) : NotificationSettings {
             nextEnabled= from["notif.settings.nextEnabled"] as? Boolean ?: true,
             stopEnabled= from["notif.settings.stopEnabled"] as? Boolean ?: true,
             playPauseEnabled = from["notif.settings.playPauseEnabled"] as? Boolean ?: true,
-<<<<<<< HEAD
-            prevEnabled = from["notif.settings.prevEnabled"] as? Boolean ?: true
-=======
             prevEnabled = from["notif.settings.prevEnabled"] as? Boolean ?: true,
             seekBarEnabled = from["notif.settings.seekBarEnabled"] as? Boolean ?: true
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
     )
 }

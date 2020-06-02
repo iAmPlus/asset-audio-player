@@ -16,12 +16,9 @@ class NotificationSettings {
   /// both android & ios
   final bool prevEnabled;
 
-<<<<<<< HEAD
-=======
   /// both android & ios
   final bool seekBarEnabled;
 
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
   /// android only
   final bool stopEnabled;
   //endregion
@@ -36,12 +33,9 @@ class NotificationSettings {
   /// null for default behavior
   final NotificationAction customPrevAction;
 
-<<<<<<< HEAD
-=======
   /// null for default behavior
   final NotificationAction customStopAction;
 
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
   //no custom action for stop
 
   //endregion
@@ -51,17 +45,11 @@ class NotificationSettings {
     this.nextEnabled = true,
     this.prevEnabled = true,
     this.stopEnabled = true,
-<<<<<<< HEAD
-    this.customNextAction,
-    this.customPlayPauseAction,
-    this.customPrevAction,
-=======
     this.seekBarEnabled = true,
     this.customNextAction,
     this.customPlayPauseAction,
     this.customPrevAction,
     this.customStopAction,
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
   });
 }
 
@@ -72,8 +60,5 @@ void writeNotificationSettingsInto(
   params["notif.settings.playPauseEnabled"] =
       notificationSettings.playPauseEnabled;
   params["notif.settings.prevEnabled"] = notificationSettings.prevEnabled;
-<<<<<<< HEAD
-=======
   params["notif.settings.seekBarEnabled"] = notificationSettings.seekBarEnabled;
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 }

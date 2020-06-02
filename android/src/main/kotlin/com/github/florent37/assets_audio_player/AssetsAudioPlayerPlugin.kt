@@ -4,14 +4,10 @@ import StopWhenCall
 import StopWhenCallAudioFocus
 import android.content.Context
 import androidx.annotation.NonNull
-<<<<<<< HEAD
-import com.github.florent37.assets_audio_player.notification.*
-=======
 import com.github.florent37.assets_audio_player.notification.MediaButtonsReceiver
 import com.github.florent37.assets_audio_player.notification.NotificationManager
 import com.github.florent37.assets_audio_player.notification.fetchAudioMetas
 import com.github.florent37.assets_audio_player.notification.fetchNotificationSettings
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
@@ -284,8 +280,6 @@ class AssetsAudioPlayer(
                         return
                     }
                     getOrCreatePlayer(id).seek(to * 1L)
-<<<<<<< HEAD
-=======
                     result.success(null)
                 } ?: run {
                     result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
@@ -306,7 +300,6 @@ class AssetsAudioPlayer(
                     val audioMetas = fetchAudioMetas(args)
 
                     getOrCreatePlayer(id).onAudioUpdated(path, audioMetas)
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                     result.success(null)
                 } ?: run {
                     result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
@@ -355,11 +348,7 @@ class AssetsAudioPlayer(
                             seek = seek,
                             respectSilentMode = respectSilentMode,
                             displayNotification = displayNotification,
-<<<<<<< HEAD
-                            notificationSettings= notificationSettings,
-=======
                             notificationSettings = notificationSettings,
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                             result = result,
                             playSpeed = playSpeed,
                             audioMetas = audioMetas,
