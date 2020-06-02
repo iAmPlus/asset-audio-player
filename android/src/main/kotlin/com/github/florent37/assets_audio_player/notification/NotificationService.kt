@@ -123,8 +123,6 @@ class NotificationService : Service() {
                 durationMs = action.durationMs
         )
 
-        val notificationSettings = action.notificationSettings
-
         val toggleIntent = createReturnIntent(forAction = NotificationAction.ACTION_TOGGLE, forPlayer = action.playerId)
                 .putExtra(EXTRA_NOTIFICATION_ACTION, action.copyWith(
                         isPlaying = !action.isPlaying
