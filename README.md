@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/assets_audio_player.svg)](
 https://pub.dartlang.org/packages/assets_audio_player)
 
-Play music/audio stored in assets files (simultaneously) directly from Flutter (android / ios / web). 
+Play music/audio stored in assets files (simultaneously) directly from Flutter (android / ios / web / macos). 
 
 You can also use play audio files from **network** using their url, **radios/livestream** and **local files**
 
@@ -30,11 +30,16 @@ AssetsAudioPlayer.newPlayer().open(
 
 ```yaml
 dependencies:
+<<<<<<< HEAD
   assets_audio_player: ^1.6.3
+=======
+  assets_audio_player: ^2.0.0+2
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 ```
 
 **Works with `flutter: ">=1.12.13+hotfix.6 <2.0.0"`, be sure to upgrade your sdk**
 
+<<<<<<< HEAD
 <details>
   <summary> 🌐 Web support</summary>
   
@@ -46,6 +51,8 @@ dependencies:
 
 </details>
 
+=======
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 You like the package ? buy me a kofi :)
 
 <a href='https://ko-fi.com/A160LCC' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
@@ -57,11 +64,13 @@ You like the package ? buy me a kofi :)
             <th>Android</th>
             <th>iOS</th>
             <th>Web</th>
+            <th>MacOS</th>
         </tr>
     </thead>
     <tbody>
         <tr>
           <td>🗄️ Asset file (asset path)</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -71,15 +80,18 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>📁 Local file (path)</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>📻 Network LiveStream / radio (url)</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -94,11 +106,13 @@ You like the package ? buy me a kofi :)
             <th>Android</th>
             <th>iOS</th>
             <th>Web</th>
+            <th>MacOS</th>
         </tr>
     </thead>
     <tbody>
         <tr>
           <td>🎶 Multiple players</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -108,11 +122,13 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>💬System notification</td>
           <td>✅</td>
           <td>✅</td>
+          <td>🚫</td>
           <td>🚫</td>
         </tr>
         <tr>
@@ -120,17 +136,20 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>🚫</td>
+          <td>🚫</td>
         </tr>
         <tr>
           <td>🔕 Respect System silent mode</td>
           <td>✅</td>
           <td>✅</td>
           <td>🚫</td>
+          <td>🚫</td>
         </tr>
         <tr>
           <td>📞 Pause on phone call</td>
           <td>✅</td>
           <td>✅</td>
+          <td>🚫</td>
           <td>🚫</td>
         </tr>
     </tbody>
@@ -143,11 +162,13 @@ You like the package ? buy me a kofi :)
             <th>Android</th>
             <th>iOS</th>
             <th>Web</th>
+            <th>MacOS</th>
         </tr>
     </thead>
     <tbody>
         <tr>
           <td>▶ Play</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -157,9 +178,11 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>⏹ Stop</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -169,9 +192,11 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>⏪⏩ SeekBy(position)</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -181,9 +206,11 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>⏪ Rewind(speed)</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -193,9 +220,11 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
            <td>⏮ Prev</td>
+           <td>✅</td>
            <td>✅</td>
            <td>✅</td>
            <td>✅</td>
@@ -210,11 +239,13 @@ You like the package ? buy me a kofi :)
             <th>Android</th>
             <th>iOS</th>
             <th>Web</th>
+            <th>MacOS</th>
         </tr>
     </thead>
     <tbody>
         <tr>
            <td>🐦 Audio Widget</td>
+           <td>✅</td>
            <td>✅</td>
            <td>✅</td>
            <td>✅</td>
@@ -224,9 +255,11 @@ You like the package ? buy me a kofi :)
             <td>✅</td>
             <td>✅</td>
             <td>✅</td>
+            <td>✅</td>
         </tr>
         <tr>
              <td>🐦 AudioPlayer Builders Extension</td>
+             <td>✅</td>
              <td>✅</td>
              <td>✅</td>
              <td>✅</td>
@@ -241,11 +274,20 @@ You like the package ? buy me a kofi :)
             <th>Android</th>
             <th>iOS</th>
             <th>Web</th>
+            <th>MacOS</th>
         </tr>
     </thead>
     <tbody>
         <tr>
           <td>🔁 Loop</td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>✅</td>
+        </tr>
+        <tr>
+          <td>🔀 Shuffle</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -261,9 +303,11 @@ You like the package ? buy me a kofi :)
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>⏩ get/set Play Speed</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -278,11 +322,13 @@ You like the package ? buy me a kofi :)
             <th>Android</th>
             <th>iOS</th>
             <th>Web</th>
+            <th>MacOS</th>
         </tr>
     </thead>
     <tbody>
         <tr>
           <td>🦻 Listener onReady(completeDuration)</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -292,9 +338,11 @@ You like the package ? buy me a kofi :)
            <td>✅</td>
            <td>✅</td>
            <td>✅</td>
+           <td>✅</td>
         </tr>
         <tr>
           <td>🦻 Listener finished</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -304,15 +352,18 @@ You like the package ? buy me a kofi :)
            <td>✅</td>
            <td>✅</td>
            <td>✅</td>
+           <td>✅</td>
         </tr>
         <tr>
           <td>🦻 Listener volume</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
+          <td>✅</td>
         </tr>
         <tr>
           <td>🦻Listener Play Speed</td>
+          <td>✅</td>
           <td>✅</td>
           <td>✅</td>
           <td>✅</td>
@@ -468,6 +519,25 @@ open(AUDIO,
 )
 ```
 
+<<<<<<< HEAD
+=======
+## Update audio's metas / notification content
+
+After your audio creation, just call 
+
+```dart
+audio.updateMetas(
+       player: _assetsAudioPlayer, //add the player if the audio is actually played
+       title: "My new title",
+       artist: "My new artist",
+       //if I not provide a new album, it keep the old one
+       image: MetasImage.network(
+         //my new image url
+       ),
+);
+```
+
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 ## Bluetooth Actions
  
 You have to enable notification to make them work
@@ -747,7 +817,7 @@ assetsAudioPlayer.isLooping.listen((loop){
 assetsAudioPlayer.toggleLoop(); //toggle the value of looping
 ```
 
-# Network Policies (android/iOS)
+# Network Policies (android/iOS/macOS)
 
 Android only allow HTTPS calls, you will have an error if you're using HTTP, 
 don't forget to add INTERNET permission and seet `usesCleartextTraffic="true"` in your **AndroidManifest.xml**
@@ -774,6 +844,23 @@ don't forget to edit your **info.plist** and set `NSAppTransportSecurity` to `NS
     <key>NSAllowsArbitraryLoads</key>
     <true/>
 </dict>
+```
+
+To enable http calls on macOs, you have to add input/output calls capabilities into `info.plist`
+
+```
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+</dict>
+<key>UIBackgroundModes</key>
+<array>
+    <string>audio</string>
+    <string>fetch</string>
+</array>
+<key>com.apple.security.network.client</key>
+<true/>
 ```
 
 # 🌐 Web Support

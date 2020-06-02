@@ -8,6 +8,7 @@ class NotificationManager(private val context: Context) {
 
     var closed = false
 
+<<<<<<< HEAD
     fun showNotification(playerId: String, audioMetas: AudioMetas, isPlaying: Boolean, notificationSettings: NotificationSettings) {
         if(closed)
             return
@@ -19,6 +20,28 @@ class NotificationManager(private val context: Context) {
                     notificationSettings= notificationSettings
             ))
         })
+=======
+    fun showNotification(playerId: String, audioMetas: AudioMetas, isPlaying: Boolean, notificationSettings: NotificationSettings, stop: Boolean, durationMs: Long) {
+        if(closed)
+            return
+        if(stop){
+            context.startService(Intent(context, NotificationService::class.java).apply {
+                putExtra(NotificationService.EXTRA_NOTIFICATION_ACTION, NotificationAction.Hide(
+                        playerId = playerId
+                ))
+            })
+        } else {
+            context.startService(Intent(context, NotificationService::class.java).apply {
+                putExtra(NotificationService.EXTRA_NOTIFICATION_ACTION, NotificationAction.Show(
+                        isPlaying = isPlaying,
+                        audioMetas = audioMetas,
+                        playerId = playerId,
+                        notificationSettings = notificationSettings,
+                        durationMs= durationMs
+                ))
+            })
+        }
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
         AssetsAudioPlayerPlugin.instance?.assetsAudioPlayer?.registerLastPlayerWithNotif(playerId)
     }
 

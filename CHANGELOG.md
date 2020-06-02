@@ -1,3 +1,19 @@
+<<<<<<< HEAD
+=======
+## 2.0.0+2
+
+* Added MacOS support
+
+## 1.7.0
+
+* Fixed bluetooth on android on some devices
+* Fallback to android native MediaPlayer if exoplayer can't read the file
+* Added `audio.updateMetas` to update notification content after creation
+* Android Seekbar notification is now optional
+* Android usable notification Seekbar
+* Added stop custom notification action
+
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 ## 1.6.3
 
 * Custom notification icon (android)

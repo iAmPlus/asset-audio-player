@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.github.florent37.assets_audio_player.AssetsAudioPlayerPlugin
 
-class NotificationActionReciever : BroadcastReceiver() {
+class NotificationActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val playerId = intent.getStringExtra(NotificationService.EXTRA_PLAYER_ID)
         val player = AssetsAudioPlayerPlugin.instance?.assetsAudioPlayer?.getPlayer(playerId)
@@ -13,8 +13,8 @@ class NotificationActionReciever : BroadcastReceiver() {
         when (intent.action) {
              NotificationAction.ACTION_PREV -> player.prev()
              NotificationAction.ACTION_STOP -> {
-                 player.stop()
-                 NotificationManager(context).hideNotification()
+                 player.askStop()
+                 //NotificationManager(context).hideNotification()
              }
              NotificationAction.ACTION_NEXT -> player.next()
              NotificationAction.ACTION_TOGGLE -> {

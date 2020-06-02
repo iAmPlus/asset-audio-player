@@ -2,10 +2,30 @@ package com.github.florent37.assets_audio_player.notification
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
+import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 
-class MediaButtonsReciever(context: Context, private val onAction: (MediaButtonAction) -> Unit) {
+class MediaButtonsReceiver(context: Context, private val onAction: (MediaButtonAction) -> Unit, private val onNotifSeek: (Long) -> Unit) {
+
+    companion object {
+        var instance: MediaButtonsReceiver? = null
+
+
+        private var mediaSessionCompat : MediaSessionCompat? = null
+        fun getMediaSessionCompat(context: Context) : MediaSessionCompat {
+            if(mediaSessionCompat == null) {
+                mediaSessionCompat = MediaSessionCompat(context, "MediaButtonsReceiver", null, null).apply {
+                    setFlags(FLAG_HANDLES_MEDIA_BUTTONS)
+                    isActive = true
+                }
+            }
+            return mediaSessionCompat!!
+        }
+    }
 
     enum class MediaButtonAction {
         play, 
@@ -16,18 +36,24 @@ class MediaButtonsReciever(context: Context, private val onAction: (MediaButtonA
         stop
     }
 
+    init {
+        instance = this
+    }
+
     private val mediaSessionCallback = object : MediaSessionCompat.Callback() {
         override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
             onIntentReceive(mediaButtonEvent)
             return super.onMediaButtonEvent(mediaButtonEvent)
         }
+
+        override fun onSeekTo(pos: Long) {
+            super.onSeekTo(pos)
+            seekPlayerTo(pos)
+        }
     }
 
-    private val mediaSessionCompat: MediaSessionCompat = MediaSessionCompat(context, "MediaButtonsReciever", null, null)
-
     init {
-        mediaSessionCompat.setCallback(mediaSessionCallback)
-        mediaSessionCompat.isActive = true
+        getMediaSessionCompat(context).setCallback(mediaSessionCallback)
     }
 
     private fun getAdjustedKeyCode(keyEvent: KeyEvent): Int {
@@ -63,6 +89,11 @@ class MediaButtonsReciever(context: Context, private val onAction: (MediaButtonA
                 ?.let { action ->
                     handleMediaButton(action)
                 }
+
+    }
+
+    private fun seekPlayerTo(pos: Long) {
+        this.onNotifSeek(pos)
     }
 
     private fun handleMediaButton(action: MediaButtonAction) {

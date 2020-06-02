@@ -2,10 +2,16 @@ package com.github.florent37.assets_audio_player
 
 import StopWhenCall
 import StopWhenCallAudioFocus
-import android.app.RemoteAction
 import android.content.Context
 import androidx.annotation.NonNull
+<<<<<<< HEAD
 import com.github.florent37.assets_audio_player.notification.*
+=======
+import com.github.florent37.assets_audio_player.notification.MediaButtonsReceiver
+import com.github.florent37.assets_audio_player.notification.NotificationManager
+import com.github.florent37.assets_audio_player.notification.fetchAudioMetas
+import com.github.florent37.assets_audio_player.notification.fetchNotificationSettings
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
@@ -24,6 +30,7 @@ internal val METHOD_CURRENT = "player.current"
 internal val METHOD_NEXT = "player.next"
 internal val METHOD_PREV = "player.prev"
 internal val METHOD_PLAY_OR_PAUSE = "player.playOrPause"
+internal val METHOD_NOTIFICATION_STOP = "player.stop"
 
 class AssetsAudioPlayerPlugin : FlutterPlugin {
 
@@ -57,7 +64,7 @@ class AssetsAudioPlayer(
 
     private var stopWhenCall = StopWhenCallAudioFocus(context)
     private val notificationManager = NotificationManager(context)
-    private var mediaButtonsReciever : MediaButtonsReciever? = null
+    private var mediaButtonsReceiver: MediaButtonsReceiver? = null
     private val stopWhenCallListener = object : StopWhenCall.Listener {
         override fun onPhoneStateChanged(audioState: StopWhenCall.AudioState) {
             players.values.forEach {
@@ -71,9 +78,14 @@ class AssetsAudioPlayer(
     fun register() {
         stopWhenCall.register(stopWhenCallListener)
 
-        mediaButtonsReciever = MediaButtonsReciever(context, onAction = {
-            onMediaButton(it)
-        })
+        mediaButtonsReceiver = MediaButtonsReceiver(context,
+                onAction = {
+                    onMediaButton(it)
+                },
+                onNotifSeek = { position ->
+                    onNotifSeekPlayer(position)
+                }
+        )
 
         val channel = MethodChannel(messenger, "assets_audio_player")
         channel.setMethodCallHandler(this)
@@ -120,9 +132,9 @@ class AssetsAudioPlayer(
                 onPositionChanged = { position ->
                     channel.invokeMethod(METHOD_POSITION, position)
                 }
-                onReadyToPlay = { totalDurationSeconds ->
+                onReadyToPlay = { totalDurationMs ->
                     channel.invokeMethod(METHOD_CURRENT, mapOf(
-                            "totalDuration" to totalDurationSeconds)
+                            "totalDurationMs" to totalDurationMs)
                     )
                 }
                 onPlaying = {
@@ -146,6 +158,9 @@ class AssetsAudioPlayer(
                 }
                 onNotificationPlayOrPause = {
                     channel.invokeMethod(METHOD_PLAY_OR_PAUSE, null)
+                }
+                onNotificationStop = {
+                    channel.invokeMethod(METHOD_NOTIFICATION_STOP, null)
                 }
             }
             return@getOrPut player
@@ -269,6 +284,29 @@ class AssetsAudioPlayer(
                         return
                     }
                     getOrCreatePlayer(id).seek(to * 1L)
+<<<<<<< HEAD
+=======
+                    result.success(null)
+                } ?: run {
+                    result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
+                    return
+                }
+            }
+            "onAudioUpdated" -> {
+                (call.arguments as? Map<*, *>)?.let { args ->
+                    val id = args["id"] as? String ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument (id) must be an String.", null)
+                        return
+                    }
+                    val path = args["path"] as? String ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument(path) must be an String.", null)
+                        return
+                    }
+
+                    val audioMetas = fetchAudioMetas(args)
+
+                    getOrCreatePlayer(id).onAudioUpdated(path, audioMetas)
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                     result.success(null)
                 } ?: run {
                     result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
@@ -317,7 +355,11 @@ class AssetsAudioPlayer(
                             seek = seek,
                             respectSilentMode = respectSilentMode,
                             displayNotification = displayNotification,
+<<<<<<< HEAD
                             notificationSettings= notificationSettings,
+=======
+                            notificationSettings = notificationSettings,
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                             result = result,
                             playSpeed = playSpeed,
                             audioMetas = audioMetas,
@@ -336,19 +378,28 @@ class AssetsAudioPlayer(
         this.lastPlayerIdWithNotificationEnabled = playerId
     }
 
-    fun onMediaButton(action: MediaButtonsReciever.MediaButtonAction) {
+    fun onMediaButton(action: MediaButtonsReceiver.MediaButtonAction) {
         lastPlayerIdWithNotificationEnabled
                 ?.let {
                     getPlayer(it)
                 }?.let { player ->
-                    when(action) {
-                        MediaButtonsReciever.MediaButtonAction.play -> player.askPlayOrPause()
-                        MediaButtonsReciever.MediaButtonAction.pause -> player.askPlayOrPause()
-                        MediaButtonsReciever.MediaButtonAction.playOrPause -> player.askPlayOrPause()
-                        MediaButtonsReciever.MediaButtonAction.next -> player.next()
-                        MediaButtonsReciever.MediaButtonAction.prev -> player.prev()
-                        MediaButtonsReciever.MediaButtonAction.stop -> player.stop()
+                    when (action) {
+                        MediaButtonsReceiver.MediaButtonAction.play -> player.askPlayOrPause()
+                        MediaButtonsReceiver.MediaButtonAction.pause -> player.askPlayOrPause()
+                        MediaButtonsReceiver.MediaButtonAction.playOrPause -> player.askPlayOrPause()
+                        MediaButtonsReceiver.MediaButtonAction.next -> player.next()
+                        MediaButtonsReceiver.MediaButtonAction.prev -> player.prev()
+                        MediaButtonsReceiver.MediaButtonAction.stop -> player.stop()
                     }
+                }
+    }
+
+    fun onNotifSeekPlayer(toMs: Long) {
+        lastPlayerIdWithNotificationEnabled
+                ?.let {
+                    getPlayer(it)
+                }?.let { player ->
+                    player.seek(toMs)
                 }
     }
 }

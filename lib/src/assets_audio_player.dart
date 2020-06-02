@@ -3,10 +3,13 @@ import 'dart:math';
 
 import 'package:assets_audio_player/src/notification.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 import 'applifecycle.dart';
 import 'playable.dart';
@@ -315,7 +318,6 @@ class AssetsAudioPlayer {
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
     _realTimeSubscription?.cancel();
-    onStop();
     _players.remove(this.id);
 
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
@@ -349,11 +351,12 @@ class AssetsAudioPlayer {
           if (call.arguments == null) {
             _current.value = null;
           } else {
-            final totalDuration = _toDuration(call.arguments["totalDuration"]);
+            final totalDurationMs =
+                _toDuration(call.arguments["totalDurationMs"]);
 
             final playingAudio = PlayingAudio(
               audio: _lastOpenedAssetsAudio,
-              duration: totalDuration,
+              duration: totalDurationMs,
             );
 
             if (_playlist != null) {
@@ -585,11 +588,11 @@ class AssetsAudioPlayer {
   /// Converts a number to duration
   Duration _toDuration(num value) {
     if (value.isNaN) {
-      return Duration(seconds: 0);
+      return Duration(milliseconds: 0);
     } else if (value is int) {
-      return Duration(seconds: value);
+      return Duration(milliseconds: value);
     } else if (value is double) {
-      return Duration(seconds: value.round());
+      return Duration(milliseconds: value.round());
     } else {
       return Duration();
     }
@@ -604,7 +607,11 @@ class AssetsAudioPlayer {
   }
 
   void _notificationStop() {
-    stop();
+    if (_playlist?.notificationSettings?.customStopAction != null) {
+      _playlist?.notificationSettings?.customStopAction(this);
+    } else {
+      stop();
+    }
   }
 
   void _notificationPlayPause() {
@@ -625,7 +632,7 @@ class AssetsAudioPlayer {
 
   //private method, used in open(playlist) and open(path)
   Future<void> _open(
-    Audio audio, {
+    Audio audioInput, {
     bool autoStart = _DEFAULT_AUTO_START,
     double forcedVolume,
     bool respectSilentMode = _DEFAULT_RESPECT_SILENT_MODE,
@@ -635,24 +642,16 @@ class AssetsAudioPlayer {
     NotificationSettings notificationSettings,
   }) async {
     final currentAudio = _lastOpenedAssetsAudio;
-    if (audio != null) {
+    if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
-      String path;
-      if (onPlay != null) {
-        try {
-          path = await onPlay(audio);
-        } catch (e) {
-          print(e);
-          return Future.error(e);
-        }
-      } else {
-        path = audio.path;
-      }
+
+      final audio = await _handlePlatformAsset(audioInput);
+
       try {
         Map<String, dynamic> params = {
           "id": this.id,
-          "audioType": audio.audioType.description(),
-          "path": path,
+          "audioType": audioTypeDescription(audio.audioType),
+          "path": audio.path,
           "autoStart": autoStart,
           "respectSilentMode": respectSilentMode,
           "displayNotification": showNotification,
@@ -671,10 +670,8 @@ class AssetsAudioPlayer {
         writeNotificationSettingsInto(params, notifSettings);
         //endregion
 
-        if (audio.metas != null) {
-          writeAudioMetasInto(params, audio.metas);
-        }
-        _lastOpenedAssetsAudio = audio;
+        writeAudioMetasInto(params, audio.metas);
+        _lastOpenedAssetsAudio = audioInput;
         /*final result = */
 
         await _sendChannel.invokeMethod('open', params);
@@ -684,6 +681,21 @@ class AssetsAudioPlayer {
         _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
         print(e);
         return Future.error(e);
+      }
+    }
+  }
+
+  Future<void> onAudioUpdated(Audio audio) async {
+    if (_lastOpenedAssetsAudio != null) {
+      if (_lastOpenedAssetsAudio.path == audio.path) {
+        final Map<String, dynamic> params = {
+          "id": this.id,
+          "path": audio.path,
+        };
+
+        writeAudioMetasInto(params, audio.metas);
+
+        await _sendChannel.invokeMethod('onAudioUpdated', params);
       }
     }
   }
@@ -936,6 +948,40 @@ class AssetsAudioPlayer {
       "playSpeed":
           (playSpeed ?? defaultPlaySpeed).clamp(minPlaySpeed, maxPlaySpeed),
     });
+  }
+
+  Future<Audio> _handlePlatformAsset(Audio input) async {
+    if (defaultTargetPlatform == TargetPlatform.macOS &&
+        input.audioType == AudioType.asset) {
+      //on macos assets are not available from native
+      final String path = await _copyToTmpMemory(
+          package: input.package, assetSource: input.path);
+      return input.copyWith(audioType: AudioType.file, path: path);
+    }
+    return input;
+  }
+
+  //returns the file path
+  Future<String> _copyToTmpMemory({String package, String assetSource}) async {
+    final String fileName = "${package ?? ""}$assetSource";
+    final completePath = '${(await getTemporaryDirectory()).path}/$fileName';
+    final file = File(completePath);
+    if (await file.exists()) {
+      return file.path;
+    } else {
+      await file.create(recursive: true);
+
+      ByteData assetContent;
+      if (package == null) {
+        assetContent = await rootBundle.load('$assetSource');
+      } else {
+        assetContent = await rootBundle.load('$package/$assetSource');
+      }
+
+      await file.writeAsBytes(assetContent.buffer.asUint8List());
+
+      return file.path;
+    }
   }
 }
 

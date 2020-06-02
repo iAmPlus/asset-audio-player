@@ -3,11 +3,11 @@ package com.github.florent37.assets_audio_player
 import StopWhenCall
 import android.content.Context
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Handler
 import android.os.Message
 import com.github.florent37.assets_audio_player.notification.AudioMetas
 import com.github.florent37.assets_audio_player.notification.NotificationManager
+<<<<<<< HEAD
 import com.github.florent37.assets_audio_player.notification.NotificationSettings
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player
@@ -15,8 +15,19 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.*
+=======
+import com.github.florent37.assets_audio_player.notification.NotificationService
+import com.github.florent37.assets_audio_player.notification.NotificationSettings
+import com.github.florent37.assets_audio_player.playerimplem.DurationMS
+import com.github.florent37.assets_audio_player.playerimplem.PlayerImplem
+import com.github.florent37.assets_audio_player.playerimplem.PlayerImplemExoPlayer
+import com.github.florent37.assets_audio_player.playerimplem.PlayerImplemMediaPlayer
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.math.max
 
 /**
@@ -24,7 +35,7 @@ import kotlin.math.max
  */
 class Player(
         val id: String,
-        context: Context,
+        private val context: Context,
         private val stopWhenCall: StopWhenCall,
         private val notificationManager: NotificationManager,
         private val flutterAssets: FlutterPlugin.FlutterAssets
@@ -44,13 +55,13 @@ class Player(
     // To handle position updates.
     private val handler = Handler()
 
-    private var mediaPlayer: ExoPlayer? = null
+    private var mediaPlayer: PlayerImplem? = null
 
     //region outputs
     var onVolumeChanged: ((Double) -> Unit)? = null
     var onPlaySpeedChanged: ((Double) -> Unit)? = null
     var onForwardRewind: ((Double) -> Unit)? = null
-    var onReadyToPlay: ((Long) -> Unit)? = null
+    var onReadyToPlay: ((DurationMS) -> Unit)? = null
     var onPositionChanged: ((Long) -> Unit)? = null
     var onFinished: (() -> Unit)? = null
     var onPlaying: ((Boolean) -> Unit)? = null
@@ -59,6 +70,7 @@ class Player(
     var onPrev: (() -> Unit)? = null
     var onStop: (() -> Unit)? = null
     var onNotificationPlayOrPause: (() -> Unit)? = null
+    var onNotificationStop: (() -> Unit)? = null
     //endregion
 
     private var respectSilentMode: Boolean = false
@@ -74,6 +86,11 @@ class Player(
     private var lastRingerMode: Int? = null //see https://developer.android.com/reference/android/media/AudioManager.html?hl=fr#getRingerMode()
 
     private var displayNotification = false
+
+    private var _playingPath : String? = null
+    private var _durationMs : DurationMS = 0
+    private var _positionMs : DurationMS = 0
+    private var _lastOpenedPath : String? = null
     private var audioMetas: AudioMetas? = null
     private var notificationSettings: NotificationSettings? = null
 
@@ -85,7 +102,8 @@ class Player(
                         handler.removeCallbacks(this)
                     }
 
-                    val position = mediaPlayer.currentPosition / 1000L
+                    val positionMs : Long = mediaPlayer.currentPositionMs
+                    val position = positionMs / 1000L
 
                     // Send position (seconds) to the application.
                     onPositionChanged?.invoke(position)
@@ -97,6 +115,9 @@ class Player(
                             setVolume(volume) //re-apply volume if changed
                         }
                     }
+
+                    _positionMs = positionMs
+                    updateNotifPosition()
 
                     // Update every 300ms.
                     handler.postDelayed(this, 300)
@@ -115,6 +136,13 @@ class Player(
         this.onPrev?.invoke()
     }
 
+    fun onAudioUpdated(path: String, audioMetas: AudioMetas) {
+        if(_playingPath == path || (_playingPath == null && _lastOpenedPath == path)){
+            this.audioMetas = audioMetas
+            updateNotif()
+        }
+    }
+
     fun open(assetAudioPath: String?,
              assetAudioPackage: String?,
              audioType: String,
@@ -131,12 +159,12 @@ class Player(
     ) {
         stop(pingListener = false)
 
-        this.mediaPlayer = SimpleExoPlayer.Builder(context).build();
         this.displayNotification = displayNotification
         this.audioMetas = audioMetas
         this.notificationSettings = notificationSettings
         this.respectSilentMode = respectSilentMode
 
+<<<<<<< HEAD
         lateinit var mediaSource: MediaSource
         try {
             mediaPlayer?.stop()
@@ -153,30 +181,39 @@ class Player(
                     flutterAssets.getAssetFilePathByName(assetAudioPath!!)
                 } else {
                     flutterAssets.getAssetFilePathByName(assetAudioPath!!, assetAudioPackage)
+=======
+        _lastOpenedPath = assetAudioPath
+
+        GlobalScope.launch(Dispatchers.Main) {
+            try {
+                val durationMs = try {
+                    openExoPlayer(
+                            assetAudioPath = assetAudioPath,
+                            assetAudioPackage = assetAudioPackage,
+                            audioType = audioType,
+                            context = context
+                    )
+                } catch (t: Throwable) {
+                    //fallback to mediaPlayer if error while opening
+                    openMediaPlayer(
+                            assetAudioPath = assetAudioPath,
+                            assetAudioPackage = assetAudioPackage,
+                            audioType = audioType,
+                            context = context
+                    )
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                 }
-                val assetDataSource = AssetDataSource(context)
-                assetDataSource.open(DataSpec(Uri.parse(path)))
 
-                val factory = DataSource.Factory { assetDataSource }
-                mediaSource = ProgressiveMediaSource
-                        .Factory(factory, DefaultExtractorsFactory())
-                        .createMediaSource(assetDataSource.uri)
-            }
-        } catch (e: Exception) {
-            onPositionChanged?.invoke(0)
-            e.printStackTrace()
-            result.error("OPEN", e.message, null)
-            return
-        }
+                //here one open succeed
+                onReadyToPlay?.invoke(durationMs)
 
-        var onThisMediaReady = false
-        var lastState : Int? = null
-        this.mediaPlayer?.addListener(object : Player.EventListener {
+                _playingPath = assetAudioPath
+                _durationMs = durationMs
 
-            override fun onPlayerError(error: ExoPlaybackException) {
-                result.error("OPEN", error.message, null)
-            }
+                setVolume(volume)
+                setPlaySpeed(playSpeed)
 
+<<<<<<< HEAD
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 if(lastState != playbackState) {
                     when (playbackState) {
@@ -219,12 +256,89 @@ class Player(
                         else -> {
                         }
                     }
+=======
+                seek?.let {
+                    this@Player.seek(milliseconds = seek * 1L)
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                 }
-                lastState = playbackState
-            }
-        })
 
-        mediaPlayer?.prepare(mediaSource)
+                if (autoStart) {
+                    play() //display notif inside
+                } else {
+                    updateNotif() //if pause, we need to display the notif
+                }
+                result.success(null)
+            } catch (t: Throwable) {
+                //if one error while opening, result.error
+                onPositionChanged?.invoke(0)
+                t.printStackTrace()
+                result.error("OPEN", t.message, null)
+            }
+        }
+    }
+
+    private suspend fun openExoPlayer(assetAudioPath: String?,
+                                      assetAudioPackage: String?,
+                                      audioType: String,
+                                      context: Context
+    ): DurationMS {
+        mediaPlayer = PlayerImplemExoPlayer(
+                onFinished = {
+                    onFinished?.invoke()
+                    stop(pingListener = false)
+                },
+                onBuffering = {
+                    onBuffering?.invoke(it)
+                },
+                onError = { t ->
+                    //TODO, handle errors after opened
+                }
+        )
+
+        try {
+            return mediaPlayer!!.open(
+                    context = context,
+                    assetAudioPath = assetAudioPath,
+                    audioType = audioType,
+                    assetAudioPackage = assetAudioPackage,
+                    flutterAssets = flutterAssets
+            )
+        } catch (t: Throwable) {
+            mediaPlayer?.release()
+            throw  t
+        }
+    }
+
+    private suspend fun openMediaPlayer(
+            assetAudioPath: String?,
+            assetAudioPackage: String?,
+            audioType: String,
+            context: Context
+    ): DurationMS {
+        mediaPlayer = PlayerImplemMediaPlayer(
+                onFinished = {
+                    onFinished?.invoke()
+                    stop(pingListener = false)
+                },
+                onBuffering = {
+                    onBuffering?.invoke(it)
+                },
+                onError = { t ->
+                    //TODO, handle errors after opened
+                }
+        )
+        try {
+            return mediaPlayer!!.open(
+                    context = context,
+                    assetAudioPath = assetAudioPath,
+                    audioType = audioType,
+                    assetAudioPackage = assetAudioPackage,
+                    flutterAssets = flutterAssets
+            )
+        } catch (t: Throwable) {
+            mediaPlayer?.release()
+            throw  t
+        }
     }
 
     fun stop(pingListener: Boolean = true) {
@@ -236,7 +350,6 @@ class Player(
 
             mediaPlayer?.stop()
             mediaPlayer?.release()
-            updateNotif()
             onPlaying?.invoke(false)
             handler.removeCallbacks(updatePosition)
         }
@@ -244,10 +357,11 @@ class Player(
             forwardHandler!!.stop()
             forwardHandler = null
         }
-        onForwardRewind?.invoke(0.0)
         mediaPlayer = null
-        if (pingListener) {
+        onForwardRewind?.invoke(0.0)
+        if (pingListener) { //action from user
             onStop?.invoke()
+            updateNotif()
         }
     }
 
@@ -268,14 +382,38 @@ class Player(
         onForwardRewind?.invoke(0.0)
     }
 
+    private fun updateNotifPosition() {
+        this.audioMetas
+                ?.takeIf { this.displayNotification }
+                ?.takeIf { notificationSettings?.seekBarEnabled ?: true }
+                ?.let { audioMetas ->
+                    NotificationService.updatePosition(
+                            context = context,
+                            isPlaying = isPlaying,
+                            speed = this.playSpeed.toFloat(),
+                            currentPositionMs = _positionMs
+                    )
+        }
+    }
+    
     private fun updateNotif() {
         this.audioMetas?.takeIf { this.displayNotification }?.let { audioMetas ->
             this.notificationSettings?.let { notificationSettings ->
+<<<<<<< HEAD
+=======
+                updateNotifPosition()
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                 notificationManager.showNotification(
                         playerId = id,
                         audioMetas = audioMetas,
                         isPlaying = this.isPlaying,
+<<<<<<< HEAD
                         notificationSettings = notificationSettings
+=======
+                        notificationSettings = notificationSettings,
+                        stop = (mediaPlayer == null),
+                        durationMs = this._durationMs
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
                 )
             }
         }
@@ -283,18 +421,26 @@ class Player(
 
     fun play() {
         val audioState = this.stopWhenCall.requestAudioFocus()
+<<<<<<< HEAD
         if(audioState == StopWhenCall.AudioState.AUTHORIZED_TO_PLAY){
+=======
+        if (audioState == StopWhenCall.AudioState.AUTHORIZED_TO_PLAY) {
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
             this.isEnabledToPlayPause = true //this one must be called before play/pause()
             this.isEnabledToChangeVolume = true //this one must be called before play/pause()
             playerPlay()
         } //else will wait until focus is enabled
     }
 
+<<<<<<< HEAD
     private fun playerPlay(){ //the play
+=======
+    private fun playerPlay() { //the play
+>>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
         if (isEnabledToPlayPause) { //can be disabled while recieving phone call
             mediaPlayer?.let { player ->
                 stopForward()
-                player.playWhenReady = true
+                player.play()
                 handler.post(updatePosition)
                 onPlaying?.invoke(true)
                 updateNotif()
@@ -307,7 +453,7 @@ class Player(
     fun pause() {
         if (isEnabledToPlayPause) {
             mediaPlayer?.let {
-                it.playWhenReady = false
+                it.pause()
                 handler.removeCallbacks(updatePosition)
 
                 stopForward()
@@ -321,13 +467,13 @@ class Player(
         mediaPlayer?.apply {
             val to = max(milliseconds, 0L)
             seekTo(to)
-            onPositionChanged?.invoke(currentPosition / 1000L)
+            onPositionChanged?.invoke(currentPositionMs / 1000L)
         }
     }
 
     fun seekBy(milliseconds: Long) {
         mediaPlayer?.let {
-            val to = it.currentPosition + milliseconds;
+            val to = it.currentPositionMs + milliseconds;
             seek(to)
         }
     }
@@ -344,7 +490,7 @@ class Player(
                     }
                 }
 
-                it.audioComponent?.volume = v.toFloat();
+                it.setVolume(v.toFloat())
 
                 onVolumeChanged?.invoke(this.volume) //only notify the setted volume, not the silent mode one
             }
@@ -361,7 +507,7 @@ class Player(
             }
             this.playSpeed = playSpeed
             mediaPlayer?.let {
-                it.setPlaybackParameters(PlaybackParameters(playSpeed.toFloat()))
+                it.setPlaySpeed(playSpeed.toFloat())
                 onPlaySpeedChanged?.invoke(this.playSpeed)
             }
         }
@@ -373,7 +519,7 @@ class Player(
         }
 
         mediaPlayer?.let {
-            it.playWhenReady = false
+            it.pause()
             //handler.removeCallbacks(updatePosition)
             //onPlaying?.invoke(false)
         }
@@ -418,6 +564,10 @@ class Player(
 
     fun askPlayOrPause() {
         this.onNotificationPlayOrPause?.invoke()
+    }
+
+    fun askStop() {
+        this.onNotificationStop?.invoke()
     }
 }
 

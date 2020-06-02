@@ -8,28 +8,22 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
-import android.net.Uri
+import android.media.MediaMetadata
 import android.os.Build
 import android.os.IBinder
-import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY_PAUSE
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media.session.MediaButtonReceiver
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.github.florent37.assets_audio_player.R
+import com.google.android.exoplayer2.C
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class NotificationService : Service() {
 
@@ -40,22 +34,53 @@ class NotificationService : Service() {
 
         const val EXTRA_PLAYER_ID = "playerId"
         const val EXTRA_NOTIFICATION_ACTION = "notificationAction"
-    }
 
+        fun updatePosition(context: Context, isPlaying: Boolean, currentPositionMs: Long, speed: Float){
+            MediaButtonsReceiver.getMediaSessionCompat(context).let { mediaSession ->
+                val state = if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED;
+                mediaSession.setPlaybackState(PlaybackStateCompat.Builder ()
+                        .setActions(ACTION_SEEK_TO)
+                        .setState(state, currentPositionMs, if(isPlaying) speed else 0f)
+                        .build());
+            }
+        }
+        
+        fun displaySeekBar(context: Context, display: Boolean, durationMs: Long){
+            val mediaSession = MediaButtonsReceiver.getMediaSessionCompat(context)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (!display || durationMs == 0L /* livestream */) {
+                    mediaSession.setMetadata(MediaMetadataCompat.Builder()
+                            .putLong(MediaMetadata.METADATA_KEY_DURATION, C.TIME_UNSET)
+                            .build())
+                } else {
+                    mediaSession.setMetadata(MediaMetadataCompat.Builder()
+                            .putLong(MediaMetadata.METADATA_KEY_DURATION, durationMs)
+                            .build())
+                }
+            }
+        }
+    }
+    
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        if(intent.action == Intent.ACTION_MEDIA_BUTTON){
+            MediaButtonsReceiver.getMediaSessionCompat(applicationContext).let {
+                MediaButtonReceiver.handleIntent(it, intent)
+            }
+        }
         when (val notificationAction = intent.getSerializableExtra(EXTRA_NOTIFICATION_ACTION)) {
             is NotificationAction.Show -> {
                 displayNotification(notificationAction)
             }
             is NotificationAction.Hide -> {
-                stopForeground(false)
+                hideNotif()
             }
         }
         return START_NOT_STICKY
     }
 
     private fun createReturnIntent(forAction: String, forPlayer: String): Intent {
-        return Intent(this, NotificationActionReciever::class.java)
+        return Intent(this, NotificationActionReceiver::class.java)
                 .setAction(forAction)
                 .putExtra(EXTRA_PLAYER_ID, forPlayer)
     }
@@ -88,7 +113,15 @@ class NotificationService : Service() {
 
     private fun displayNotification(action: NotificationAction.Show, bitmap: Bitmap?) {
         createNotificationChannel()
-        val mediaSession = MediaSessionCompat(this, MEDIA_SESSION_TAG)
+        val mediaSession = MediaButtonsReceiver.getMediaSessionCompat(applicationContext)
+
+        val notificationSettings = action.notificationSettings
+
+        displaySeekBar(
+                context = applicationContext, 
+                display = notificationSettings.seekBarEnabled, 
+                durationMs = action.durationMs
+        )
 
         val notificationSettings = action.notificationSettings
 
@@ -165,9 +198,10 @@ class NotificationService : Service() {
                 .build()
         startForeground(NOTIFICATION_ID, notification)
 
-        if (!action.isPlaying) {
-            stopForeground(false)
-        }
+        //fix for https://github.com/florent37/Flutter-AssetsAudioPlayer/issues/139
+        //if (!action.isPlaying) {
+        //    stopForeground(false)
+        //}
     }
 
     private fun createNotificationChannel() {
@@ -188,8 +222,14 @@ class NotificationService : Service() {
         }
     }
 
-    override fun onTaskRemoved(rootIntent: Intent) {
+    private fun hideNotif(){
+        NotificationManagerCompat.from(applicationContext).cancel(NOTIFICATION_ID)
         stopForeground(true)
+        stopSelf()
+    }
+    
+    override fun onTaskRemoved(rootIntent: Intent) {
+        hideNotif()
     }
 
     override fun onCreate() {
