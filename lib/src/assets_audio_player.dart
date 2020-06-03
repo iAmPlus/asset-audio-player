@@ -318,6 +318,7 @@ class AssetsAudioPlayer {
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
     _realTimeSubscription?.cancel();
+    onStop();
     _players.remove(this.id);
 
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
@@ -646,12 +647,22 @@ class AssetsAudioPlayer {
       _respectSilentMode = respectSilentMode;
 
       final audio = await _handlePlatformAsset(audioInput);
-
+      String path;
+      if (onPlay != null) {
+        try {
+          path = await onPlay(audio);
+        } catch (e) {
+          print(e);
+          return Future.error(e);
+        }
+      } else {
+        path = audio.path;
+      }
       try {
         Map<String, dynamic> params = {
           "id": this.id,
           "audioType": audioTypeDescription(audio.audioType),
-          "path": audio.path,
+          "path": path,
           "autoStart": autoStart,
           "respectSilentMode": respectSilentMode,
           "displayNotification": showNotification,
