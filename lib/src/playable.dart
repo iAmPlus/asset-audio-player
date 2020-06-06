@@ -76,6 +76,7 @@ class MetasImage {
 
 @immutable
 class Metas {
+  final String id;
   final String title;
   final String artist;
   final String album;
@@ -83,6 +84,7 @@ class Metas {
   final MetasImage image;
 
   const Metas({
+    this.id,
     this.title,
     this.artist,
     this.album,
@@ -96,15 +98,17 @@ class Metas {
       other is Metas &&
           runtimeType == other.runtimeType &&
           title == other.title &&
+          id == other.id &&
           artist == other.artist &&
           album == other.album &&
           image == other.image;
 
   @override
   int get hashCode =>
-      title.hashCode ^ artist.hashCode ^ album.hashCode ^ image.hashCode;
+      id.hashCode ^ title.hashCode ^ artist.hashCode ^ album.hashCode ^ image.hashCode;
 
   Metas copyWith({
+    String id,
     String title,
     String artist,
     String album,
@@ -112,6 +116,7 @@ class Metas {
     MetasImage image,
   }) {
     return new Metas(
+      id : id ?? this.id,
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
