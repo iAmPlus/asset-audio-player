@@ -97,7 +97,7 @@ class AssetsAudioPlayer {
     }
   }
 
-  Future<String> Function(Audio) onPlay;
+  Future<Audio> Function(Audio) onPlay;
   Future Function() onStop;
 
   factory AssetsAudioPlayer.newPlayer() => _getOrCreate(id: uuid.v4());
@@ -646,23 +646,20 @@ class AssetsAudioPlayer {
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
 
-      final audio = await _handlePlatformAsset(audioInput);
-      String path;
+      Audio audio = await _handlePlatformAsset(audioInput);
       if (onPlay != null) {
         try {
-          path = await onPlay(audio);
+          audio = await onPlay(audio);
         } catch (e) {
           print(e);
           return Future.error(e);
         }
-      } else {
-        path = audio.path;
-      }
+      } 
       try {
         Map<String, dynamic> params = {
           "id": this.id,
           "audioType": audioTypeDescription(audio.audioType),
-          "path": path,
+          "path": audio.path,
           "autoStart": autoStart,
           "respectSilentMode": respectSilentMode,
           "displayNotification": showNotification,
