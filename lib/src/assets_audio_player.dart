@@ -645,16 +645,15 @@ class AssetsAudioPlayer {
     final currentAudio = _lastOpenedAssetsAudio;
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
-
-      Audio audio = await _handlePlatformAsset(audioInput);
       if (onPlay != null) {
         try {
-          audio = await onPlay(audio);
+          audioInput = await onPlay(audioInput);
         } catch (e) {
           print(e);
           return Future.error(e);
         }
       } 
+      Audio audio = await _handlePlatformAsset(audioInput);
       try {
         Map<String, dynamic> params = {
           "id": this.id,
