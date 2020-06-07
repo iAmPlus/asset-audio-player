@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 ## 2.0.0+2
 
 * Added MacOS support
@@ -13,7 +11,6 @@
 * Android usable notification Seekbar
 * Added stop custom notification action
 
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 ## 1.6.3
 
 * Custom notification icon (android)

@@ -519,8 +519,6 @@ open(AUDIO,
 )
 ```
 
-<<<<<<< HEAD
-=======
 ## Update audio's metas / notification content
 
 After your audio creation, just call 
@@ -537,7 +535,6 @@ audio.updateMetas(
 );
 ```
 
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 ## Bluetooth Actions
  
 You have to enable notification to make them work
