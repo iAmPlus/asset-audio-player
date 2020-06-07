@@ -286,6 +286,23 @@ class AssetsAudioPlayer(
                     return
                 }
             }
+            "loopSingleAudio" -> {
+                (call.arguments as? Map<*, *>)?.let { args ->
+                    val id = args["id"] as? String ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument (id) must be an String.", null)
+                        return
+                    }
+                    val loop = args["loop"] as? Boolean ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument(loop) must be an Boolean.", null)
+                        return
+                    }
+                    getOrCreatePlayer(id).loopSingleAudio(loop)
+                    result.success(null)
+                } ?: run {
+                    result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
+                    return
+                }
+            }
             "onAudioUpdated" -> {
                 (call.arguments as? Map<*, *>)?.let { args ->
                     val id = args["id"] as? String ?: run {
@@ -378,7 +395,7 @@ class AssetsAudioPlayer(
                         MediaButtonsReceiver.MediaButtonAction.playOrPause -> player.askPlayOrPause()
                         MediaButtonsReceiver.MediaButtonAction.next -> player.next()
                         MediaButtonsReceiver.MediaButtonAction.prev -> player.prev()
-                        MediaButtonsReceiver.MediaButtonAction.stop -> player.stop()
+                        MediaButtonsReceiver.MediaButtonAction.stop -> player.askStop()
                     }
                 }
     }

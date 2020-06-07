@@ -40,6 +40,12 @@ const METHOD_NOTIFICATION_STOP = "player.stop";
 const METHOD_NOTIFICATION_PLAY_OR_PAUSE = "player.playOrPause";
 const METHOD_PLAY_SPEED = "player.playSpeed";
 
+enum PlayerState {
+  play,
+  pause,
+  stop,
+}
+
 /// The AssetsAudioPlayer, playing audios from assets/
 /// Example :
 ///
@@ -165,6 +171,10 @@ class AssetsAudioPlayer {
   ///         }),
   ValueStream<bool> get isPlaying => _isPlaying.stream;
 
+  final BehaviorSubject<PlayerState> _playerState =
+      BehaviorSubject<PlayerState>.seeded(PlayerState.stop);
+  ValueStream<PlayerState> get playerState => _playerState.stream;
+
   /// Then mediaplayer playing audio (mutable)
   final BehaviorSubject<Playing> _current = BehaviorSubject();
 
@@ -278,7 +288,17 @@ class AssetsAudioPlayer {
 
   /// assign the looping state : true -> looping, false -> not looping
   set loop(value) {
+    setLoop(value);
+  }
+
+  Future<void> setLoop(bool value) async {
+    _playlist.loop = value;
     _loop.value = value;
+    if (_playlist.isSingleAudio) {
+      _loopSingleAudio(value);
+    } else {
+      _loopSingleAudio(false);
+    }
   }
 
   /// assign the shuffling state : true -> shuffling, false -> not shuffling
@@ -314,6 +334,7 @@ class AssetsAudioPlayer {
     _loop.close();
     _shuffle.close();
     _playSpeed.close();
+    _playerState.close();
     _isBuffering.close();
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
@@ -350,7 +371,15 @@ class AssetsAudioPlayer {
           break;
         case METHOD_CURRENT:
           if (call.arguments == null) {
+            _playlistAudioFinished.add(Playing(
+              audio: this._current.value.audio,
+              index: this._current.value.index,
+              hasNext: false,
+              playlist: this._current.value.playlist,
+            ));
+            _playlistFinished.value = true;
             _current.value = null;
+            _playerState.value = PlayerState.stop;
           } else {
             final totalDurationMs =
                 _toDuration(call.arguments["totalDurationMs"]);
@@ -384,7 +413,9 @@ class AssetsAudioPlayer {
           }
           break;
         case METHOD_IS_PLAYING:
-          _isPlaying.value = call.arguments;
+          final bool playing = call.arguments;
+          _isPlaying.value = playing;
+          _playerState.value = playing ? PlayerState.play : PlayerState.pause;
           break;
         case METHOD_VOLUME:
           _volume.value = call.arguments;
@@ -509,6 +540,7 @@ class AssetsAudioPlayer {
         playSpeed: _playlist.playSpeed,
         notificationSettings: _playlist.notificationSettings,
         autoStart: autoStart,
+        loop: _playlist.loop,
         seek: seek,
       );
     }
@@ -640,6 +672,7 @@ class AssetsAudioPlayer {
     bool showNotification = _DEFAULT_SHOW_NOTIFICATION,
     Duration seek,
     double playSpeed,
+    bool loop,
     NotificationSettings notificationSettings,
   }) async {
     final currentAudio = _lastOpenedAssetsAudio;
@@ -683,6 +716,8 @@ class AssetsAudioPlayer {
 
         await _sendChannel.invokeMethod('open', params);
 
+        await setLoop(loop);
+
         _playlistFinished.value = false;
       } catch (e) {
         _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
@@ -715,6 +750,7 @@ class AssetsAudioPlayer {
     bool showNotification = _DEFAULT_SHOW_NOTIFICATION,
     Duration seek,
     double playSpeed,
+    bool loop,
     NotificationSettings notificationSettings,
     PlayInBackground playInBackground = _DEFAULT_PLAY_IN_BACKGROUND,
   }) async {
@@ -726,6 +762,7 @@ class AssetsAudioPlayer {
         respectSilentMode: respectSilentMode,
         showNotification: showNotification,
         playSpeed: playSpeed,
+        loop: loop,
         notificationSettings: notificationSettings,
         playInBackground: playInBackground);
     _playlist.clearPlayerAudio(shuffle);
@@ -759,6 +796,7 @@ class AssetsAudioPlayer {
     Duration seek,
     double playSpeed,
     NotificationSettings notificationSettings,
+    bool loop = false,
     PlayInBackground playInBackground = _DEFAULT_PLAY_IN_BACKGROUND,
   }) async {
     Playlist playlist;
@@ -778,6 +816,7 @@ class AssetsAudioPlayer {
         respectSilentMode: respectSilentMode,
         showNotification: showNotification,
         seek: seek,
+        loop: loop,
         playSpeed: playSpeed,
         notificationSettings:
             notificationSettings ?? defaultNotificationSettings,
@@ -820,6 +859,11 @@ class AssetsAudioPlayer {
     await _sendChannel.invokeMethod('play', {
       "id": this.id,
     });
+  }
+
+  Future<void> _loopSingleAudio(bool loop) async {
+    await _sendChannel
+        .invokeMethod('loopSingleAudio', {"id": this.id, "loop": loop});
   }
 
   /// Tells the media player to play the current song
@@ -998,6 +1042,7 @@ class _CurrentPlaylist {
   final double volume;
   final bool respectSilentMode;
   final bool showNotification;
+  bool loop;
   final double playSpeed;
   final NotificationSettings notificationSettings;
   final PlayInBackground playInBackground;
@@ -1090,6 +1135,8 @@ class _CurrentPlaylist {
     return index + 1 < indexList.length;
   }
 
+  bool get isSingleAudio => playlist.audios.length == 1;
+
   _CurrentPlaylist({
     @required this.playlist,
     this.volume,
@@ -1098,6 +1145,7 @@ class _CurrentPlaylist {
     this.playSpeed,
     this.notificationSettings,
     this.playInBackground,
+    this.loop,
   });
 
   void returnToFirst() {

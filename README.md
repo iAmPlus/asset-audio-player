@@ -2,6 +2,13 @@
 
 [![pub package](https://img.shields.io/pub/v/assets_audio_player.svg)](
 https://pub.dartlang.org/packages/assets_audio_player)
+<a href="https://github.com/Solido/awesome-flutter">
+   <img alt="Awesome Flutter" src="https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat" />
+</a>
+<img src="https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20macos%20%7C%20web%20-%23989898" />
+
+
+[![Codemagic build status](https://api.codemagic.io/apps/5ed8002fe1907b001c67db52/5ed8002fe1907b001c67db51/status_badge.svg)](https://codemagic.io/apps/5ed8002fe1907b001c67db52/5ed8002fe1907b001c67db51/latest_build)
 
 Play music/audio stored in assets files (simultaneously) directly from Flutter (android / ios / web / macos). 
 
@@ -31,10 +38,14 @@ AssetsAudioPlayer.newPlayer().open(
 ```yaml
 dependencies:
 <<<<<<< HEAD
+<<<<<<< HEAD
   assets_audio_player: ^1.6.3
 =======
   assets_audio_player: ^2.0.0+2
 >>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
+=======
+  assets_audio_player: ^2.0.1
+>>>>>>> 2de1bd35856ba6277162ac084ed5965cba3f4439
 ```
 
 **Works with `flutter: ">=1.12.13+hotfix.6 <2.0.0"`, be sure to upgrade your sdk**
@@ -858,6 +869,36 @@ To enable http calls on macOs, you have to add input/output calls capabilities i
 </array>
 <key>com.apple.security.network.client</key>
 <true/>
+```
+
+and in your
+
+`Runner/DebugProfile.entitlements`
+
+add 
+
+```
+<key>com.apple.security.network.client</key>
+<true/>
+```
+
+Complete `Runner/DebugProfile.entitlements`
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
+</dict>
+</plist>
 ```
 
 # 🌐 Web Support
