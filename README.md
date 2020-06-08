@@ -37,33 +37,13 @@ AssetsAudioPlayer.newPlayer().open(
 
 ```yaml
 dependencies:
-<<<<<<< HEAD
-<<<<<<< HEAD
-  assets_audio_player: ^1.6.3
-=======
   assets_audio_player: ^2.0.0+2
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 =======
   assets_audio_player: ^2.0.1
->>>>>>> 2de1bd35856ba6277162ac084ed5965cba3f4439
 ```
 
 **Works with `flutter: ">=1.12.13+hotfix.6 <2.0.0"`, be sure to upgrade your sdk**
 
-<<<<<<< HEAD
-<details>
-  <summary> 🌐 Web support</summary>
-  
-And if you wan [web support, enable web](https://flutter.dev/web) then add
-```yaml
-dependencies:
-  assets_audio_player_web: ^1.6.3
-```
-
-</details>
-
-=======
->>>>>>> aef903db08b6554d4dee86baea5b9f590778de5b
 You like the package ? buy me a kofi :)
 
 <a href='https://ko-fi.com/A160LCC' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

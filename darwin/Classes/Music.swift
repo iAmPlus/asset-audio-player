@@ -1231,4 +1231,3 @@ class Music : NSObject, FlutterPlugin {
     }
     
 }
-
