@@ -1,3 +1,8 @@
+## 2.0.1+3
+
+* Added `AssetsAudioPlayerGroup` (beta)
+* Added Headers in `Audio.network` & `Audio.liveStream`
+
 ## 2.0.1
 
 * Added `.playerState` (play/pause/stop)

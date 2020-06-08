@@ -323,6 +323,38 @@ class AssetsAudioPlayer(
                     return
                 }
             }
+            "forceNotificationForGroup" -> {
+                (call.arguments as? Map<*, *>)?.let { args ->
+                    val id = args["id"] as? String
+                    val isPlaying = args["isPlaying"] as? Boolean ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument(isPlaying) must be an Boolean.", null)
+                        return
+                    }
+                    val display = args["display"] as? Boolean ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument(display) must be an Boolean.", null)
+                        return
+                    }
+
+                    val audioMetas = fetchAudioMetas(args)
+                    val notificationSettings = fetchNotificationSettings(args)
+                    
+                    if(!display){
+                        notificationManager.stopNotification()
+                    } else if(id != null) {
+                        getOrCreatePlayer(id).forceNotificationForGroup(
+                            audioMetas = audioMetas,
+                            isPlaying = isPlaying,
+                            display = display,
+                            notificationSettings= notificationSettings
+                        )
+                    }
+                   
+                    result.success(null)
+                } ?: run {
+                    result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
+                    return
+                }
+            }
             "open" -> {
                 (call.arguments as? Map<*, *>)?.let { args ->
 
@@ -352,6 +384,7 @@ class AssetsAudioPlayer(
                     val displayNotification = args["displayNotification"] as? Boolean ?: false
                     val respectSilentMode = args["respectSilentMode"] as? Boolean ?: false
                     val seek = args["seek"] as? Int?
+                    val networkHeaders = args["networkHeaders"] as? Map<*, *>?
 
                     val notificationSettings = fetchNotificationSettings(args)
                     val audioMetas = fetchAudioMetas(args)
@@ -369,6 +402,7 @@ class AssetsAudioPlayer(
                             result = result,
                             playSpeed = playSpeed,
                             audioMetas = audioMetas,
+                            networkHeaders= networkHeaders,
                             context = context
                     )
                 } ?: run {
