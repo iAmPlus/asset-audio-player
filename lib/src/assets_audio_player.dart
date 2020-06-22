@@ -423,21 +423,22 @@ class AssetsAudioPlayer {
   /// if it was'nt looping -> now it is
   Future<void> toggleLoop() async {
     final currentMode = loopMode.value;
-    if (_playlist.isSingleAudio) {
+    // if (_playlist.isSingleAudio) {
+    //   if (currentMode == LoopMode.none) {
+    //     await setLoopMode(LoopMode.single);
+    //   } else {
+    //     await setLoopMode(LoopMode.none);
+    //   }
+    // } else {
       if (currentMode == LoopMode.none) {
-        await setLoopMode(LoopMode.single);
-      } else {
+        await setLoopMode(LoopMode.playlist);}
+        // else if (currentMode == LoopMode.playlist) {
+        //await setLoopMode(LoopMode.single);}
+       else 
+      {
         await setLoopMode(LoopMode.none);
       }
-    } else {
-      if (currentMode == LoopMode.none) {
-        await setLoopMode(LoopMode.playlist);
-      } else if (currentMode == LoopMode.playlist) {
-        await setLoopMode(LoopMode.single);
-      } else {
-        await setLoopMode(LoopMode.none);
-      }
-    }
+    // }
   }
 
   /// toggle the shuffling state
