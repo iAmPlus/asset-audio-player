@@ -198,7 +198,8 @@ class AssetsAudioPlayer {
   }
 
   Future<Audio> Function(Audio) onPlay;
-  Future Function() onStop;
+  Future<void> Function() onStop;
+  Future<void> Function() onChange;
 
   factory AssetsAudioPlayer.newPlayer() => _getOrCreate(id: uuid.v4());
 
@@ -948,6 +949,10 @@ class AssetsAudioPlayer {
         /*final result = */
 
         await _sendChannel.invokeMethod('open', params);
+
+        if(onChange != null){
+          await onChange();
+        }
 
         await setLoopMode(loopMode);
 
