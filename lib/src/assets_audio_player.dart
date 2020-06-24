@@ -964,7 +964,7 @@ class AssetsAudioPlayer {
         _isBuffering.add(false);
         _currentPosition.add(Duration.zero);
         try {
-          await stop();
+          await pause();
         } catch (t) {
           print(t);
         }
