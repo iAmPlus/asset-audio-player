@@ -91,6 +91,8 @@ class Metas {
   final String title;
   final String artist;
   final String album;
+  final String artistID;
+  final String albumID;
   final Map<String, dynamic> extra;
   final MetasImage image;
   final MetasImage onImageLoadFail;
@@ -99,7 +101,9 @@ class Metas {
       {this.id,
       this.title,
       this.artist,
+      this.artistID,
       this.album,
+      this.albumID,
       this.image,
       this.extra,
       this.onImageLoadFail}) {
@@ -117,6 +121,8 @@ class Metas {
           id == other.id &&
           artist == other.artist &&
           album == other.album &&
+          album == other.albumID &&
+          album == other.artistID &&
           image == other.image &&
           onImageLoadFail == onImageLoadFail;
 
@@ -125,6 +131,8 @@ class Metas {
       title.hashCode ^
       artist.hashCode ^
       album.hashCode ^
+      artistID.hashCode ^
+      albumID.hashCode ^
       image.hashCode ^
       onImageLoadFail.hashCode;
 
@@ -133,6 +141,8 @@ class Metas {
     String title,
     String artist,
     String album,
+    String artistID,
+    String albumID,
     Map<String, dynamic> extra,
     MetasImage image,
     MetasImage onImageLoadFail,
@@ -142,6 +152,8 @@ class Metas {
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
+      albumID: albumID ?? this.albumID,
+      artistID: artistID ?? this.artistID,
       extra: extra ?? this.extra,
       image: image ?? this.image,
       onImageLoadFail: onImageLoadFail ?? this.onImageLoadFail,
