@@ -864,7 +864,7 @@ class AssetsAudioPlayer {
     } else {
       _playlistFinished.value = true; // no next elements -> finished
       _playlist.returnToFirst();
-        await pause();
+      await pause();
     }
   }
 
@@ -1023,7 +1023,8 @@ class AssetsAudioPlayer {
         _isBuffering.add(false);
         _currentPosition.add(Duration.zero);
         try {
-          await pause();
+          _playlist.returnToFirst();
+        await pause();
         } catch (t) {
           print(t);
         }
