@@ -54,6 +54,7 @@ class Player(
     var onPlaySpeedChanged: ((Double) -> Unit)? = null
     var onForwardRewind: ((Double) -> Unit)? = null
     var onReadyToPlay: ((DurationMS) -> Unit)? = null
+    var onSessionIdFound: ((Int) -> Unit)? = null
     var onPositionMSChanged: ((Long) -> Unit)? = null
     var onFinished: (() -> Unit)? = null
     var onPlaying: ((Boolean) -> Unit)? = null
@@ -193,6 +194,9 @@ class Player(
 
                 //here one open succeed
                 onReadyToPlay?.invoke(durationMs)
+                mediaPlayer?.getSessionId()?.let {
+                    onSessionIdFound?.invoke(it)
+                }
 
                 _playingPath = assetAudioPath
                 _durationMs = durationMs
@@ -212,7 +216,14 @@ class Player(
                 result.success(null)
             } catch (error: Throwable) {
                 error.printStackTrace()
-                result.error("OPEN", error.message, null)
+                if(error is PlayerFinder.NoPlayerFoundException && error.why != null){
+                    result.error("OPEN", error.why.message, mapOf(
+                            "type" to error.why.type,
+                            "message" to error.why.message
+                    ))
+                } else {
+                    result.error("OPEN", error.message, null)
+                }
             }
         }
     }

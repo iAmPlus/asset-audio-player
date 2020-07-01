@@ -39,12 +39,16 @@ AssetsAudioPlayer.newPlayer().open(
 ```yaml
 dependencies:
 <<<<<<< HEAD
+<<<<<<< HEAD
   assets_audio_player: ^2.0.0+2
 =======
   assets_audio_player: ^2.0.1
 =======
   assets_audio_player: ^2.0.5+6
 >>>>>>> a6fd39930bc3b49bf34134d0224853e791c865d0
+=======
+  assets_audio_player: ^2.0.6+7
+>>>>>>> dde6e8b07984089db0f44d44b10ea44c17fe4898
 ```
 
 **Works with `flutter: ">=1.12.13+hotfix.6 <2.0.0"`, be sure to upgrade your sdk**

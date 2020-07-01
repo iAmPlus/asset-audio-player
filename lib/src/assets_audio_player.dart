@@ -46,6 +46,7 @@ const METHOD_NOTIFICATION_STOP = "player.stop";
 const METHOD_NOTIFICATION_PLAY_OR_PAUSE = "player.playOrPause";
 const METHOD_PLAY_SPEED = "player.playSpeed";
 const METHOD_ERROR = "player.error";
+const METHOD_AUDIO_SESSION_ID = "player.audioSessionId";
 
 enum PlayerState {
   play,
@@ -266,6 +267,12 @@ class AssetsAudioPlayer {
   ///         }),
   ValueStream<bool> get isPlaying => _isPlaying.stream;
 
+  ///represent the android session id
+  ///does nothing on others platforms
+  final BehaviorSubject<int> _audioSessionId = BehaviorSubject<int>();
+
+  ValueStream<int> get audioSessionId => _audioSessionId.stream;
+
   final BehaviorSubject<PlayerState> _playerState =
       BehaviorSubject<PlayerState>.seeded(PlayerState.stop);
 
@@ -461,6 +468,7 @@ class AssetsAudioPlayer {
     _playlistFinished.close();
     _current.close();
     _playlistAudioFinished.close();
+    _audioSessionId.close();
     _loopMode.close();
     _shuffle.close();
     _cacheDownloadInfos.close();
@@ -513,6 +521,11 @@ class AssetsAudioPlayer {
         case METHOD_ERROR:
           _handleOnError(call.arguments);
           break;
+        case METHOD_AUDIO_SESSION_ID:
+          if(call.arguments != null) {
+            _audioSessionId.value = call.arguments;
+          }
+          break;
         case METHOD_CURRENT:
           if (call.arguments == null) {
             final current = this._current.value;
@@ -553,12 +566,8 @@ class AssetsAudioPlayer {
           }
           break;
         case METHOD_POSITION:
-          if (call.arguments is int) {
-            _currentPosition.value = Duration(milliseconds: call.arguments);
-          } else if (call.arguments is double) {
-            double value = call.arguments;
-            _currentPosition.value = Duration(milliseconds: value.round());
-          }
+          _onPositionReceived(call.arguments);
+
           break;
         case METHOD_IS_PLAYING:
           final bool playing = call.arguments;
@@ -697,6 +706,52 @@ class AssetsAudioPlayer {
     }
 
     return false;
+  }
+
+  void _onPositionReceived(dynamic argument) {
+    final oldValue = _currentPosition.value;
+    int newValue = null;
+    if (argument is int) {
+      final int value = argument;
+      newValue = value;
+    } else if (argument is double) {
+      final double value = argument;
+      newValue = value.round();
+    }
+    if (newValue != null) {
+      _currentPosition.value = Duration(milliseconds: newValue);
+      if (loopMode.value == LoopMode.single ||
+          (this._playlist.isSingleAudio &&
+              loopMode.value == LoopMode.playlist)) {
+        final current = this.current.value;
+        if (current != null) {
+          final Duration completeDuration = current.audio?.duration;
+          final oldEndReached =
+              (completeDuration.inMilliseconds - oldValue.inMilliseconds) <
+                  800; //< 800ms
+          final newJustStarted = newValue < 800; //<800ms
+
+          //print("old: ${oldValue.inMilliseconds}, dur : ${completeDuration.inMilliseconds}");
+          if (newJustStarted && oldEndReached) {
+            //print("loop");
+            final finishedPlay = Playing(
+              audio: current.audio,
+              index: current.index,
+              hasNext: _playlist?.hasNext() ?? false,
+              playlist: current.playlist,
+            );
+            _playlistAudioFinished.add(finishedPlay);
+            if(_playlist.isSingleAudio){
+              _playlistFinished.value = true;
+            }
+          } else if(newJustStarted && _playlistFinished.value == true) {
+            //if was true (just finished an audio)
+            //re-set it to false
+            _playlistFinished.value = false;
+          }
+        }
+      }
+    }
   }
 
   Future<void> _openPlaylistCurrent(
@@ -926,7 +981,10 @@ class AssetsAudioPlayer {
           "respectSilentMode": respectSilentMode,
           "displayNotification": showNotification,
           "volume": forcedVolume ?? this.volume.value ?? defaultVolume,
-          "playSpeed": playSpeed ?? this.playSpeed.value ?? defaultPlaySpeed,
+          "playSpeed": playSpeed ??
+              audio.playSpeed ??
+              this.playSpeed.value ??
+              defaultPlaySpeed,
         };
         if (seek != null) {
           params["seek"] = seek.inMilliseconds.round();
