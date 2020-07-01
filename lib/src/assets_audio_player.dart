@@ -833,7 +833,8 @@ class AssetsAudioPlayer {
 
         return true;
       } else if (stopIfLast) {
-        await stop();
+        _playlist.returnToFirst();
+        await pause();
         return true;
       } else if (requestByUser) {
         //last element
