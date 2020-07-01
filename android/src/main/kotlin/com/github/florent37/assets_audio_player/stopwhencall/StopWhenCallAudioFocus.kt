@@ -53,7 +53,8 @@ class StopWhenCallAudioFocus(private val context: Context) : StopWhenCall() {
         return when (result) {
             AudioManager.AUDIOFOCUS_GAIN -> AudioState.AUTHORIZED_TO_PLAY
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> AudioState.REDUCE_VOLUME
-            else -> AudioState.FORBIDDEN
+            AudioManager.AUDIOFOCUS_LOSS -> AudioState.FORBIDDEN
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> AudioState.FORBIDDEN
         }
     }
 

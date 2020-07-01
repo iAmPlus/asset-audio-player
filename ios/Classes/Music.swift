@@ -119,6 +119,34 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.registrar = registrar
     }
     
+    func registerForNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleInterruption),
+                                               name: .AVAudioSessionInterruption,
+                                               object: AVAudioSession.sharedInstance())
+    }
+    
+    func handleInterruption(_ notification: Notification) {
+        guard let info = notification.userInfo,
+            let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSessionInterruptionType(rawValue: typeValue) else {
+                return
+        }
+        if type == .began {
+            // Interruption began, take appropriate actions (save state, update user interface)
+        }
+        else if type == .ended {
+            guard let optionsValue =
+                userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+                    return
+            }
+            let options = AVAudioSessionInterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                // Interruption Ended - playback should resume
+            }
+        }
+    }
+    
     func log(_ message: String){
         channel.invokeMethod("log", arguments: message)
     }
