@@ -19,6 +19,7 @@ import 'playable.dart';
 import 'playing.dart';
 import 'loop.dart';
 import 'errors.dart';
+import 'PhoneStrategy.dart';
 
 export 'applifecycle.dart';
 export 'notification.dart';
@@ -26,6 +27,7 @@ export 'playable.dart';
 export 'playing.dart';
 export 'loop.dart';
 export 'errors.dart';
+export 'PhoneStrategy.dart';
 
 const _DEFAULT_AUTO_START = true;
 const _DEFAULT_RESPECT_SILENT_MODE = false;
@@ -522,7 +524,7 @@ class AssetsAudioPlayer {
           _handleOnError(call.arguments);
           break;
         case METHOD_AUDIO_SESSION_ID:
-          if(call.arguments != null) {
+          if (call.arguments != null) {
             _audioSessionId.value = call.arguments;
           }
           break;
@@ -741,10 +743,10 @@ class AssetsAudioPlayer {
               playlist: current.playlist,
             );
             _playlistAudioFinished.add(finishedPlay);
-            if(_playlist.isSingleAudio){
+            if (_playlist.isSingleAudio) {
               _playlistFinished.value = true;
             }
-          } else if(newJustStarted && _playlistFinished.value == true) {
+          } else if (newJustStarted && _playlistFinished.value == true) {
             //if was true (just finished an audio)
             //re-set it to false
             _playlistFinished.value = false;
@@ -766,6 +768,8 @@ class AssetsAudioPlayer {
         notificationSettings: _playlist.notificationSettings,
         autoStart: autoStart,
         loopMode: _playlist.loopMode,
+        headPhoneStrategy: _playlist.headPhoneStrategy,
+        phoneCallStrategy: _playlist.phoneCallStrategy,
         seek: seek,
       );
     }
@@ -955,6 +959,8 @@ class AssetsAudioPlayer {
     Duration seek,
     double playSpeed,
     LoopMode loopMode,
+    HeadPhoneStrategy headPhoneStrategy,
+    PhoneCallStrategy phoneCallStrategy,
     NotificationSettings notificationSettings,
   }) async {
     final currentAudio = _lastOpenedAssetsAudio;
@@ -981,6 +987,8 @@ class AssetsAudioPlayer {
           "path": audio.path,
           "autoStart": autoStart,
           "respectSilentMode": respectSilentMode,
+          "headPhoneStrategy": describeHeadPhoneStrategy(headPhoneStrategy),
+          "phoneCallStrategy": describePhoneCallStrategy(phoneCallStrategy),
           "displayNotification": showNotification,
           "volume": forcedVolume ?? this.volume.value ?? defaultVolume,
           "playSpeed": playSpeed ??
@@ -1075,18 +1083,23 @@ class AssetsAudioPlayer {
     LoopMode loopMode,
     NotificationSettings notificationSettings,
     PlayInBackground playInBackground = _DEFAULT_PLAY_IN_BACKGROUND,
+    HeadPhoneStrategy headPhoneStrategy = HeadPhoneStrategy.none,
+    PhoneCallStrategy phoneCallStrategy = PhoneCallStrategy.pauseOnPhoneCall,
   }) async {
     _lastSeek = null;
     _replaceRealtimeSubscription();
     this._playlist = _CurrentPlaylist(
-        playlist: playlist,
-        volume: volume,
-        respectSilentMode: respectSilentMode,
-        showNotification: showNotification,
-        playSpeed: playSpeed,
-        loopMode: loopMode,
-        notificationSettings: notificationSettings,
-        playInBackground: playInBackground);
+      playlist: playlist,
+      volume: volume,
+      respectSilentMode: respectSilentMode,
+      showNotification: showNotification,
+      playSpeed: playSpeed,
+      loopMode: loopMode,
+      phoneCallStrategy: phoneCallStrategy,
+      notificationSettings: notificationSettings,
+      playInBackground: playInBackground,
+      headPhoneStrategy: headPhoneStrategy,
+    );
     _updatePlaylistIndexes();
     _playlist.moveTo(playlist.startIndex);
 
@@ -1123,6 +1136,8 @@ class AssetsAudioPlayer {
     NotificationSettings notificationSettings,
     LoopMode loopMode = LoopMode.none,
     PlayInBackground playInBackground = _DEFAULT_PLAY_IN_BACKGROUND,
+    HeadPhoneStrategy headPhoneStrategy = HeadPhoneStrategy.none,
+    PhoneCallStrategy phoneCallStrategy = PhoneCallStrategy.pauseOnPhoneCall,
   }) async {
     Playlist playlist;
     if (playable is Playlist &&
@@ -1143,6 +1158,8 @@ class AssetsAudioPlayer {
         seek: seek,
         loopMode: loopMode,
         playSpeed: playSpeed,
+        headPhoneStrategy: headPhoneStrategy,
+        phoneCallStrategy: phoneCallStrategy,
         notificationSettings:
             notificationSettings ?? defaultNotificationSettings,
         playInBackground: playInBackground,
@@ -1388,7 +1405,9 @@ class _CurrentPlaylist {
   LoopMode loopMode;
   final double playSpeed;
   final NotificationSettings notificationSettings;
+  final PhoneCallStrategy phoneCallStrategy;
   final PlayInBackground playInBackground;
+  final HeadPhoneStrategy headPhoneStrategy;
 
   int playlistIndex = 0;
 
@@ -1489,6 +1508,8 @@ class _CurrentPlaylist {
     this.notificationSettings,
     this.playInBackground,
     this.loopMode,
+    this.headPhoneStrategy,
+    this.phoneCallStrategy,
   });
 
   void returnToFirst() {

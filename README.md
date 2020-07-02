@@ -40,6 +40,7 @@ AssetsAudioPlayer.newPlayer().open(
 dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   assets_audio_player: ^2.0.0+2
 =======
   assets_audio_player: ^2.0.1
@@ -49,6 +50,9 @@ dependencies:
 =======
   assets_audio_player: ^2.0.6+7
 >>>>>>> dde6e8b07984089db0f44d44b10ea44c17fe4898
+=======
+  assets_audio_player: ^2.0.7+4
+>>>>>>> 04f55d847d509e56194fc1705e7b191679a9ea94
 ```
 
 **Works with `flutter: ">=1.12.13+hotfix.6 <2.0.0"`, be sure to upgrade your sdk**
@@ -598,6 +602,27 @@ Available remote commands :
 - Next
 - Prev
 - Stop 
+
+## HeadPhone Strategy
+
+(Only for Android for now)
+ 
+while opening a song/playlist, add a strategy
+
+```dart
+assetsAudioPlayer.open(
+   ...
+  headPhoneStrategy: HeadPhoneStrategy.pauseOnUnplug,
+  //headPhoneStrategy: HeadPhoneStrategy.none, //default
+  //headPhoneStrategy: HeadPhoneStrategy.pauseOnUnplugPlayOnPlug,
+)
+```
+
+If you want to make it work on bluetooth too, you'll have to add the BLUETOOTH permission inside your AndroidManifest.xml
+
+```xml  
+<uses-permission android:name="android.permission.BLUETOOTH" />
+```
 
 # ⛓ Play in parallel / simultaneously
 

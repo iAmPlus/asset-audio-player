@@ -1,3 +1,8 @@
+## 2.0.7+3
+
+* Added Android HeadPhoneStrategy
+* Fix local path file uri (android)
+
 ## 2.0.6+7
 
 * Cache now use `http` instead of `dio`

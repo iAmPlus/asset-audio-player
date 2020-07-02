@@ -9,6 +9,7 @@ import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.C.AUDIO_SESSION_ID_UNSET
 import com.google.android.exoplayer2.Player.REPEAT_MODE_ALL
 import com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
+import com.google.android.exoplayer2.audio.AudioListener
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -17,6 +18,7 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
 import com.google.android.exoplayer2.upstream.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -147,7 +149,7 @@ class PlayerImplemExoPlayer(
             } else if (audioType == Player.AUDIO_TYPE_FILE) {
                 return ProgressiveMediaSource
                         .Factory(DefaultDataSourceFactory(context, "assets_audio_player"), DefaultExtractorsFactory())
-                        .createMediaSource(Uri.parse(assetAudioPath))
+                        .createMediaSource(Uri.fromFile(File(assetAudioPath)))
             } else { //asset
                 val path = if (assetAudioPackage.isNullOrBlank()) {
                     flutterAssets.getAssetFilePathByName(assetAudioPath!!)
@@ -306,7 +308,19 @@ class PlayerImplemExoPlayer(
         mediaPlayer?.setPlaybackParameters(PlaybackParameters(playSpeed))
     }
 
-    override fun getSessionId(): Int? {
-        return mediaPlayer?.audioComponent?.audioSessionId?.takeIf { it != AUDIO_SESSION_ID_UNSET }
+    override fun getSessionId(listener: (Int) -> Unit) {
+        val id = mediaPlayer?.audioComponent?.audioSessionId?.takeIf { it != AUDIO_SESSION_ID_UNSET }
+        if(id != null){
+            listener(id)
+        } else {
+            val listener = object : AudioListener {
+                override fun onAudioSessionId(audioSessionId: Int) {
+                    listener(audioSessionId)
+                    mediaPlayer?.audioComponent?.removeAudioListener(this)
+                }
+            }
+            mediaPlayer?.audioComponent?.addAudioListener(listener)
+        }
+        //return
     }
 }
