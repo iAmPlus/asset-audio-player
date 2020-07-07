@@ -41,6 +41,7 @@ dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   assets_audio_player: ^2.0.0+2
 =======
   assets_audio_player: ^2.0.1
@@ -53,6 +54,9 @@ dependencies:
 =======
   assets_audio_player: ^2.0.7+4
 >>>>>>> 04f55d847d509e56194fc1705e7b191679a9ea94
+=======
+  assets_audio_player: ^2.0.7+8
+>>>>>>> 3a7ebfe44487ea03db7358126d1de79eb3917b0f
 ```
 
 **Works with `flutter: ">=1.12.13+hotfix.6 <2.0.0"`, be sure to upgrade your sdk**
