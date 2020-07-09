@@ -842,6 +842,7 @@ class AssetsAudioPlayer {
         return true;
       } else if (stopIfLast) {
         _playlist.returnToFirst();
+        await _openPlaylistCurrent();
         await pause();
         return true;
       } else if (requestByUser) {
@@ -872,7 +873,8 @@ class AssetsAudioPlayer {
     } else {
       _playlistFinished.value = true; // no next elements -> finished
       _playlist.returnToFirst();
-      await pause();
+        await _openPlaylistCurrent();
+        await pause();
     }
   }
 
