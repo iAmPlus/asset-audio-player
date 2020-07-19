@@ -36,7 +36,7 @@ const _DEFAULT_RESPECT_SILENT_MODE = false;
 const _DEFAULT_SHOW_NOTIFICATION = false;
 const _DEFAULT_PLAY_IN_BACKGROUND = PlayInBackground.enabled;
 const _DEFAULT_PLAYER = "DEFAULT_PLAYER";
- const _DEFAULT_NETWORK_SETTINGS = NetworkSettings();
+const _DEFAULT_NETWORK_SETTINGS = NetworkSettings();
 
 const METHOD_POSITION = "player.position";
 const METHOD_VOLUME = "player.volume";
@@ -183,6 +183,8 @@ class AssetsAudioPlayer {
       _audioPlayerCache = newValue;
     }
   }
+
+  bool _acceptUserOpen = true; //if false, user cannot call open method
 
   AssetsAudioPlayer._({this.id = _DEFAULT_PLAYER}) {
     _init();
@@ -977,7 +979,7 @@ class AssetsAudioPlayer {
           audioInput = await onPlay(audioInput);
         } catch (e) {
           print(e);
-          return Future.error(e);
+          throw AssetsAudioPlayerError(errorType: AssetsAudioPlayerErrorType.Network , message: e);
         }
       } 
       Audio audio = await _handlePlatformAsset(audioInput);
@@ -1146,32 +1148,48 @@ class AssetsAudioPlayer {
     PlayInBackground playInBackground = _DEFAULT_PLAY_IN_BACKGROUND,
     HeadPhoneStrategy headPhoneStrategy = HeadPhoneStrategy.none,
     PhoneCallStrategy phoneCallStrategy = PhoneCallStrategy.pauseOnPhoneCall,
+    bool forceOpen = false, //skip the _acceptUserOpen
   }) async {
-    Playlist playlist;
-    if (playable is Playlist &&
-        playable.audios != null &&
-        playable.audios.length > 0) {
-      playlist = playable;
-    } else if (playable is Audio) {
-      playlist = Playlist(audios: [playable]);
+    if (forceOpen) {
+      _acceptUserOpen = true;
     }
 
-    if (playlist != null) {
-      await _openPlaylist(
-        playlist,
-        autoStart: autoStart,
-        volume: volume,
-        respectSilentMode: respectSilentMode,
-        showNotification: showNotification,
-        seek: seek,
-        loopMode: loopMode,
-        playSpeed: playSpeed,
-        headPhoneStrategy: headPhoneStrategy,
-        phoneCallStrategy: phoneCallStrategy,
-        notificationSettings:
-            notificationSettings ?? defaultNotificationSettings,
-        playInBackground: playInBackground,
-      );
+    if (_acceptUserOpen == false) {
+      return;
+    }
+
+    try {
+      _acceptUserOpen = false;
+      Playlist playlist;
+      if (playable is Playlist &&
+          playable.audios != null &&
+          playable.audios.length > 0) {
+        playlist = playable;
+      } else if (playable is Audio) {
+        playlist = Playlist(audios: [playable]);
+      }
+
+      if (playlist != null) {
+        await _openPlaylist(
+          playlist,
+          autoStart: autoStart,
+          volume: volume,
+          respectSilentMode: respectSilentMode,
+          showNotification: showNotification,
+          seek: seek,
+          loopMode: loopMode,
+          playSpeed: playSpeed,
+          headPhoneStrategy: headPhoneStrategy,
+          phoneCallStrategy: phoneCallStrategy,
+          notificationSettings:
+              notificationSettings ?? defaultNotificationSettings,
+          playInBackground: playInBackground,
+        );
+      }
+      _acceptUserOpen = true;
+    } catch (t) {
+      _acceptUserOpen = true;
+      throw t;
     }
   }
 
