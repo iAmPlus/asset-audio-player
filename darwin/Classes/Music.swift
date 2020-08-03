@@ -1,9 +1,9 @@
 #if canImport(UIKit)
-    import Flutter
-    import AVFoundation
-    import UIKit
+import Flutter
+import AVFoundation
+import UIKit
 #elseif os(OSX)
-    import FlutterMacOS
+import FlutterMacOS
 #endif
 
 import MediaPlayer
@@ -27,7 +27,7 @@ struct NotificationSettings : Equatable {
         self.prevEnabled = true
         self.seekBarEnabled = true
     }
-
+    
     init(nextEnabled: Bool, playPauseEnabled: Bool, prevEnabled: Bool, seekBarEnabled: Bool) {
         self.nextEnabled = nextEnabled
         self.playPauseEnabled = playPauseEnabled
@@ -92,7 +92,7 @@ func fetchAudioMetas(from: NSDictionary) -> AudioMetas {
         imageType: songImageType,
         imagePackage: songImagePackage
     )
-
+    
     return audioMetas
 }
 
@@ -104,17 +104,17 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     var player: AVQueuePlayer?
     
     var observerStatus: [NSKeyValueObservation] = []
-
+    
     var displayMediaPlayerNotification = false
     var audioMetas : AudioMetas?
     var _playingPath: String?
     var _lastOpenedPath: String?
     var notificationSettings: NotificationSettings?
-    var phoneCallStrategy: PhoneCallStrategy = PhoneCallStrategy.none
+    var audioFocusStrategy: AudioFocusStrategy = AudioFocusStrategy.None()
     
     var _loopSingleAudio = false
     var isLiveStream: Bool = false
-
+    
     init(channel: FlutterMethodChannel, registrar: FlutterPluginRegistrar) {
         self.channel = channel
         self.registrar = registrar
@@ -189,20 +189,20 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     
     func showNotification(show: Bool) {
         #if os(iOS)
-           let wasShowing = self.displayMediaPlayerNotification
-           self.displayMediaPlayerNotification = show
-           if(wasShowing){
-               //hide
-                self.hideNotification()
-           } else {
+        let wasShowing = self.displayMediaPlayerNotification
+        self.displayMediaPlayerNotification = show
+        if(wasShowing){
+            //hide
+            self.hideNotification()
+        } else {
             if let metas = self.audioMetas, let notificationSettings = self.notificationSettings {
-               //show
-               self.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: metas, isPlaying: self.playing)
+                //show
+                self.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: metas, isPlaying: self.playing)
             }
         }
         #endif
     }
-
+    
     func hideNotification() {
         #if os(iOS)
         self.deinitMediaPlayerNotifEvent()
@@ -213,20 +213,20 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     func invokeListenerPlayPause(){
         self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
     }
-
+    
     func setupMediaPlayerNotificationView(notificationSettings: NotificationSettings, audioMetas: AudioMetas, isPlaying: Bool) {
         self.notificationSettings = notificationSettings
         self.audioMetas = audioMetas
-
+        
         UIApplication.shared.beginReceivingRemoteControlEvents()
         let commandCenter = MPRemoteCommandCenter.shared()
         
-            // Fallback on earlier versions
+        // Fallback on earlier versions
         
         
         self.updateNotif(audioMetas: audioMetas, isPlaying: isPlaying)
         
-
+        
         self.deinitMediaPlayerNotifEvent()
         // Add handler for Play Command
         commandCenter.playCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).playPauseEnabled
@@ -249,7 +249,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             return .success
         }
-                
+        
         // Add handler for Pause Command
         commandCenter.nextTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).nextEnabled
         self.targets["next"] = commandCenter.nextTrackCommand.addTarget { [unowned self] event in
@@ -318,15 +318,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             #endif
         }
     }
-            
+    
     #if os(iOS)
     func updateNotif(audioMetas: AudioMetas?, isPlaying: Bool) {
         self.audioMetas = audioMetas
-
+        
         if(!self.displayMediaPlayerNotification){
             return
         }
-                
+        
         self.nowPlayingInfo.removeAll()
         
         if let t = audioMetas?.title {
@@ -346,20 +346,20 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         } else {
             nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = ""
         }
-
+        
         if ((self.notificationSettings ?? NotificationSettings()).seekBarEnabled) {
-            self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.currentSongDuration
+            self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.currentSongDurationMs / 1000
             self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = _currentTime
         } else {
             self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 0
             self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0
         }
-
+        
         self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
         
         if #available(iOS 10.0, *) {
             if(isLiveStream){
-                 self.nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = 1.0
+                self.nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = 1.0
             } else {
                 self.nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = 0.0
             }
@@ -458,7 +458,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     
     func forceNotificationForGroup(isPlaying: Bool, display: Bool, audioMetas: AudioMetas, notificationSettings: NotificationSettings){
         self.displayMediaPlayerNotification = true
-
+        
         #if os(iOS)
         self.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: isPlaying)
         self.updateNotif(audioMetas: audioMetas, isPlaying: isPlaying)
@@ -466,8 +466,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         #endif
     }
     
-    var currentSongDuration : Float64 = Float64(0.0)
-
+    var currentSongDurationMs : Float64 = Float64(0.0)
+    
     func open(assetPath: String,
               assetPackage: String?,
               audioType: String,
@@ -478,7 +478,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
               audioMetas: AudioMetas,
               displayNotification: Bool,
               notificationSettings: NotificationSettings,
-              phoneCallStrategy: PhoneCallStrategy,
+              audioFocusStrategy: AudioFocusStrategy,
               playSpeed: Double,
               networkHeaders: NSDictionary?,
               result: @escaping FlutterResult
@@ -500,7 +500,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             print("mode " + mode.rawValue)
             print("displayNotification " + displayNotification.description)
             print("url: " + url.absoluteString)
-
+            
             /* set session category and mode with options */
             if #available(iOS 10.0, *) {
                 //try AVAudioSession.sharedInstance().setCategory(category, mode: mode, options: [.mixWithOthers])
@@ -525,18 +525,18 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 item = SlowMoPlayerItem(url: url)
             }
             self.player = AVQueuePlayer(playerItem: item)
-
+            
             
             self.displayMediaPlayerNotification = displayNotification
             self.notificationSettings = notificationSettings
-            self.phoneCallStrategy = phoneCallStrategy
+            self.audioFocusStrategy = audioFocusStrategy
             self.audioMetas = audioMetas
             
             self._lastOpenedPath = assetPath
             
             let notifCenter = NotificationCenter.default
             
-             #if os(iOS)
+            #if os(iOS)
             //phone call
             notifCenter.addObserver(self,
                                     selector: #selector(self.handleInterruption(_:)),
@@ -544,7 +544,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                                     object: AVAudioSession.sharedInstance()
             )
             #endif
-
+            
             notifCenter.addObserver(self, selector: #selector(self.playerDidFinishPlaying(note:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: item)
             
             // Watch notifications
@@ -563,16 +563,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     
                     if(audioType == "liveStream"){
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": 0.0])
-                        self?.currentSongDuration = Float64(0.0)
+                        self?.currentSongDurationMs = Float64(0.0)
                         self?.isLiveStream = true
                         #if os(iOS)
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
                         #endif
                     } else {
-                        let audioDurationSeconds = CMTimeGetSeconds(item.duration)
-                        let audioDurationMS = audioDurationSeconds * 1000
-                        self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": audioDurationMS])
-                        self?.currentSongDuration = audioDurationSeconds
+                        let audioDurationMs = self?.getMillisecondsFromCMTime(item.duration) ?? 0
+                        self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": audioDurationMs])
+                        self?.currentSongDurationMs = audioDurationMs
                         #if os(iOS)
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
                         #endif
@@ -618,7 +617,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 return
             }
             
-            self.currentTime = 0
+            self.currentTimeMs = 0.0
             self.playing = false
         } catch let error {
             result(FlutterError(
@@ -661,21 +660,31 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             // show buffering
             self?.setBuffering(true)
         })
-                   
+        
         observerStatus.append( item.observe(\.isPlaybackLikelyToKeepUp, options: [.new]) { [weak self] (_, _) in
             // hide buffering
             self?.setBuffering(false)
         })
-                   
+        
         observerStatus.append( item.observe( \.isPlaybackBufferFull, options: [.new]) { [weak self] (_, _) in
             // hide buffering
             self?.setBuffering(false)
         })
     }
     
+    func getMillisecondsFromCMTime(_ time: CMTime) -> Double {
+        let seconds = CMTimeGetSeconds(time);
+        let milliseconds = seconds * 1000;
+        return milliseconds;
+    }
+    
+    func getSecondsFromCMTime(_ time: CMTime) -> Double {
+        return self.getMillisecondsFromCMTime(time) / 1000;
+    }
+    
     @objc func handleInterruption(_ notification: Notification) {
-         #if os(iOS)
-        if(self.phoneCallStrategy == PhoneCallStrategy.none) {
+        #if os(iOS)
+        if(!self.audioFocusStrategy.request) {
             return
         }
         
@@ -684,28 +693,28 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
                 return
         }
-
+        
         // Switch over the interruption type.
         switch type {
-
+            
         case .began:
             // An interruption began. Update the UI as needed.
             pause()
-
+            
         case .ended:
-           // An interruption ended. Resume playback, if appropriate.
-
+            // An interruption ended. Resume playback, if appropriate.
+            
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                if(phoneCallStrategy == PhoneCallStrategy.pauseOnPhoneCallResumeAfter) {
+                if(self.audioFocusStrategy.resumeAfterInterruption) {
                     self.invokeListenerPlayPause()
                 }
                 // Interruption ended. Playback should resume.
             } else {
                 // Interruption ended. Playback should not resume.
             }
-
+            
         default: ()
         }
         #endif
@@ -731,7 +740,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             "message" : error.message,
         ])
     }
-       
+    
     var _rate : Float = 1.0
     var rate : Float {
         get {
@@ -785,20 +794,19 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     func play(){
         self.player?.play()
         self.player?.rate = self.rate
-        self.currentTimeTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+        self.currentTimeTimer = Timer.scheduledTimer(timeInterval: 0.3, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
         self.currentTimeTimer?.fire()
         self.playing = true
         
         self.updateNotifStatus(playing: self.playing, stopped: false, rate: self.player?.rate)
     }
-
+    
     private var looper: Any?
-
+    
     func loopSingleAudio(loop: Bool) {
         _loopSingleAudio = loop
         
-        let currentPos = self._currentTime
-        let currentPosMillis = Int(currentPos * 1000) //
+        let currentPosMillis = self._currentTime
         
         if(loop){
             #if os(iOS)
@@ -831,19 +839,19 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             }
             #endif
         }
-        seek(to: currentPosMillis)
+        seek(to: Int(currentPosMillis))
     }
     
-    var _currentTime : TimeInterval = 0
-    private var currentTime : TimeInterval {
+    var _currentTime : Double = 0.0
+    
+    private var currentTimeMs : Double {
         get {
             return _currentTime
         }
         set(newValue) {
             if(_currentTime != newValue){
                 _currentTime = newValue
-                let currentTimeMS = _currentTime * 1000 //not possible to have a better precision on ios...
-                self.channel.invokeMethod(Music.METHOD_POSITION, arguments: currentTimeMS)
+                self.channel.invokeMethod(Music.METHOD_POSITION, arguments: newValue)
                 
                 if(self.displayMediaPlayerNotification){
                     #if os(iOS)
@@ -854,6 +862,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 }
             }
         }
+    }
+    
+    func updateCurrentTime(time: CMTime){
+        self.currentTimeMs = self.getMillisecondsFromCMTime(time)
     }
     
     var _playing : Bool = false
@@ -899,7 +911,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.player?.pause()
         
         self.updateNotifStatus(playing: false, stopped: false, rate: 0)
-
+        
         self.playing = false
         self.currentTimeTimer?.invalidate()
     }
@@ -908,7 +920,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         //log("updateTimer")
         if let p = self.player {
             if let currentItem = p.currentItem {
-                self.currentTime = CMTimeGetSeconds(currentItem.currentTime())
+                self.updateCurrentTime(time: currentItem.currentTime())
             }
         }
     }
@@ -928,7 +940,7 @@ class Music : NSObject, FlutterPlugin {
     static let METHOD_PREV = "player.prev"
     static let METHOD_PLAY_OR_PAUSE = "player.playOrPause"
     static let METHOD_ERROR = "player.error"
-
+    
     var players = Dictionary<String, Player>()
     
     func getOrCreatePlayer(id: String) -> Player {
@@ -994,7 +1006,7 @@ class Music : NSObject, FlutterPlugin {
                     break
                 }
                 result(self.getOrCreatePlayer(id: id).playing)
-
+                
             case "play" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1058,7 +1070,7 @@ class Music : NSObject, FlutterPlugin {
                 self.getOrCreatePlayer(id: id)
                     .stop()
                 result(true)
-
+                
             case "seek" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1087,7 +1099,6 @@ class Music : NSObject, FlutterPlugin {
                 self.getOrCreatePlayer(id: id)
                     .seek(to: pos)
                 result(true)
-                
             case "volume" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1145,15 +1156,15 @@ class Music : NSObject, FlutterPlugin {
                 self.getOrCreatePlayer(id: id)
                     .setPlaySpeed(playSpeed: playSpeed)
                 result(true)
-
+                
             case "showNotification" :
                 guard let args = call.arguments as? NSDictionary else {
-                      result(FlutterError(
-                          code: "METHOD_CALL",
-                          message: call.method + " Arguments must be an NSDictionary",
-                          details: nil)
-                      )
-                      break
+                    result(FlutterError(
+                        code: "METHOD_CALL",
+                        message: call.method + " Arguments must be an NSDictionary",
+                        details: nil)
+                    )
+                    break
                 }
                 guard let id = args["id"] as? String else {
                     result(FlutterError(
@@ -1163,28 +1174,28 @@ class Music : NSObject, FlutterPlugin {
                     )
                     break
                 }
-                 guard let show = args["show"] as? Bool else {
-                     result(FlutterError(
-                         code: "METHOD_CALL",
-                         message: call.method + " Arguments[show] must be a Bool",
-                         details: nil)
-                     )
-                     break
-                 }
-                 #if os(iOS)
-                 self.getOrCreatePlayer(id: id)
+                guard let show = args["show"] as? Bool else {
+                    result(FlutterError(
+                        code: "METHOD_CALL",
+                        message: call.method + " Arguments[show] must be a Bool",
+                        details: nil)
+                    )
+                    break
+                }
+                #if os(iOS)
+                self.getOrCreatePlayer(id: id)
                     .showNotification(show: show)
-                 #endif
-                 result(true)
-
+                #endif
+                result(true)
+                
             case "loopSingleAudio" :
                 guard let args = call.arguments as? NSDictionary else {
-                      result(FlutterError(
-                          code: "METHOD_CALL",
-                          message: call.method + " Arguments must be an NSDictionary",
-                          details: nil)
-                      )
-                      break
+                    result(FlutterError(
+                        code: "METHOD_CALL",
+                        message: call.method + " Arguments must be an NSDictionary",
+                        details: nil)
+                    )
+                    break
                 }
                 guard let id = args["id"] as? String else {
                     result(FlutterError(
@@ -1194,18 +1205,18 @@ class Music : NSObject, FlutterPlugin {
                     )
                     break
                 }
-                 guard let loop = args["loop"] as? Bool else {
-                     result(FlutterError(
-                         code: "METHOD_CALL",
-                         message: call.method + " Arguments[loop] must be a Bool",
-                         details: nil)
-                     )
-                     break
-                 }
-                 self.getOrCreatePlayer(id: id)
+                guard let loop = args["loop"] as? Bool else {
+                    result(FlutterError(
+                        code: "METHOD_CALL",
+                        message: call.method + " Arguments[loop] must be a Bool",
+                        details: nil)
+                    )
+                    break
+                }
+                self.getOrCreatePlayer(id: id)
                     .loopSingleAudio(loop: loop)
-                 result(true)
-
+                result(true)
+                
             case "forwardRewind" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1234,7 +1245,7 @@ class Music : NSObject, FlutterPlugin {
                 self.getOrCreatePlayer(id: id)
                     .forwardRewind(speed: speed)
                 result(true)
-
+                
             case "forceNotificationForGroup" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1276,9 +1287,9 @@ class Music : NSObject, FlutterPlugin {
                         notificationSettings: notifSettings
                     )
                 }
-               
+                
                 result(true)
-               
+                
             case "onAudioUpdated" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1306,10 +1317,10 @@ class Music : NSObject, FlutterPlugin {
                 }
                 
                 let audioMetas = fetchAudioMetas(from: args)
-
+                
                 self.getOrCreatePlayer(id: id).onAudioUpdated(path: path, audioMetas: audioMetas)
                 result(true)
-
+                
             case "open" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1381,7 +1392,7 @@ class Music : NSObject, FlutterPlugin {
                 
                 let notifSettings = notificationSettings(from: args)
                 
-                let phoneCallStrategy = parsePhoneCallStrategy(args["phoneCallStrategy"] as? String)
+                let audioFocusStrategy = parseAudioFocusStrategy(args["audioFocusStrategy"] as? NSDictionary)
                 
                 self.getOrCreatePlayer(id: id)
                     .open(
@@ -1395,7 +1406,7 @@ class Music : NSObject, FlutterPlugin {
                         audioMetas: audioMetas,
                         displayNotification: displayNotification,
                         notificationSettings: notifSettings,
-                        phoneCallStrategy: phoneCallStrategy,
+                        audioFocusStrategy: audioFocusStrategy,
                         playSpeed: playSpeed,
                         networkHeaders: networkHeaders,
                         result: result
@@ -1419,7 +1430,7 @@ class AssetAudioPlayerError {
         self.message = message
     }
 }
-    
+
 class NetworkError : AssetAudioPlayerError {
     init(message: String) {
         super.init(type: "network", message: message)
@@ -1431,19 +1442,39 @@ class PlayerError : AssetAudioPlayerError {
     }
 }
 
-enum PhoneCallStrategy {
-    case none
-    case pauseOnPhoneCall
-    case pauseOnPhoneCallResumeAfter
+class AudioFocusStrategy {
+    let request: Bool
+    let resumeAfterInterruption: Bool
+    let resumeOthersPlayersAfterDone: Bool
+    
+    private init(request: Bool, resumeAfterInterruption: Bool, resumeOthersPlayersAfterDone: Bool) {
+        self.request = request
+        self.resumeAfterInterruption = resumeAfterInterruption
+        self.resumeOthersPlayersAfterDone = resumeOthersPlayersAfterDone
+    }
+    
+    static func None() -> AudioFocusStrategy {
+        return AudioFocusStrategy(request: false, resumeAfterInterruption: false, resumeOthersPlayersAfterDone: false)
+    }
+    static func Request(resumeAfterInterruption: Bool, resumeOthersPlayersAfterDone: Bool) -> AudioFocusStrategy {
+        return AudioFocusStrategy(request: true, resumeAfterInterruption: resumeAfterInterruption, resumeOthersPlayersAfterDone: resumeOthersPlayersAfterDone)
+    }
+    
 }
 
-func parsePhoneCallStrategy(_ from: String?) -> PhoneCallStrategy {
-    switch from {
-    case "pauseOnPhoneCall":
-        return .pauseOnPhoneCall
-    case "pauseOnPhoneCallResumeAfter":
-        return .pauseOnPhoneCallResumeAfter
-    default:
-        return .none
+func parseAudioFocusStrategy(_ from: NSDictionary?) -> AudioFocusStrategy {
+    if let params = from {
+        let request = params["request"] as? Bool ?? false
+        if (request == false) {
+            return AudioFocusStrategy.None()
+        }
+        else {
+            return AudioFocusStrategy.Request(
+                resumeAfterInterruption: params["resumeAfterInterruption"] as? Bool ?? false,
+                resumeOthersPlayersAfterDone: params["resumeOthersPlayersAfterDone"] as? Bool ?? false
+            )
+        }
+    } else {
+        return  AudioFocusStrategy.None()
     }
 }

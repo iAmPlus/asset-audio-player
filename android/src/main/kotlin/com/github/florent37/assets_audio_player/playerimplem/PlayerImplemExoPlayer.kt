@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.github.florent37.assets_audio_player.AssetAudioPlayerThrowable
+import com.github.florent37.assets_audio_player.AssetsAudioPlayerPlugin
 import com.github.florent37.assets_audio_player.Player
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.C.AUDIO_SESSION_ID_UNSET
@@ -11,6 +12,7 @@ import com.google.android.exoplayer2.Player.REPEAT_MODE_ALL
 import com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
 import com.google.android.exoplayer2.audio.AudioListener
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.extractor.ts.AdtsExtractor
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
@@ -35,7 +37,9 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
     }
 
     override suspend fun open(configuration: PlayerFinderConfiguration) : PlayerFinder.PlayerWithDuration {
-        Log.d("PlayerImplem","trying to open with exoplayer($type)")
+        if(AssetsAudioPlayerPlugin.displayLogs) {
+            Log.d("PlayerImplem", "trying to open with exoplayer($type)")
+        }
         //some type are only for web
         if(configuration.audioType != Player.AUDIO_TYPE_LIVESTREAM && configuration.audioType != Player.AUDIO_TYPE_LIVESTREAM){
             if(type == Type.HLS || type == Type.DASH || type == Type.SmoothStreaming) {
@@ -71,7 +75,9 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
                     duration = durationMS
             )
         } catch (t: Throwable) {
-            Log.d("PlayerImplem","failed to open with exoplayer($type)")
+            if(AssetsAudioPlayerPlugin.displayLogs) {
+                Log.d("PlayerImplem", "failed to open with exoplayer($type)")
+            }
             mediaPlayer.release()
             throw  t
         }
@@ -144,7 +150,7 @@ class PlayerImplemExoPlayer(
                     PlayerImplemTesterExoPlayer.Type.HLS -> HlsMediaSource.Factory(factory).setAllowChunklessPreparation(true)
                     PlayerImplemTesterExoPlayer.Type.DASH -> DashMediaSource.Factory(factory)
                     PlayerImplemTesterExoPlayer.Type.SmoothStreaming -> SsMediaSource.Factory(factory)
-                    else -> ProgressiveMediaSource.Factory(factory)
+                    else -> ProgressiveMediaSource.Factory(factory, DefaultExtractorsFactory().setAdtsExtractorFlags(AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING))
                 }.createMediaSource(uri)
             } else if (audioType == Player.AUDIO_TYPE_FILE) {
                 return ProgressiveMediaSource
@@ -237,7 +243,6 @@ class PlayerImplemExoPlayer(
             this.mediaPlayer?.addListener(object : com.google.android.exoplayer2.Player.EventListener {
 
                 override fun onPlayerError(error: ExoPlaybackException) {
-                    Log.d("PLAYER","XXXX onPlayerError XXXX")
                     val errorMapped = mapError(error)
                     if (!onThisMediaReady) {
                         continuation.resumeWithException(errorMapped)
@@ -282,8 +287,6 @@ class PlayerImplemExoPlayer(
 
             mediaPlayer?.prepare(mediaSource)
         } catch (error: Throwable) {
-            Log.d("PLAYER","XXXX CATCH EXOPLAYER XXXX")
-
             if (!onThisMediaReady) {
                 continuation.resumeWithException(error)
             } else {
