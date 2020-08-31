@@ -488,7 +488,6 @@ class AssetsAudioPlayer {
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
     _realTimeSubscription?.cancel();
-    onStop();
     _players.remove(this.id);
 
     _playerEditor = null;
@@ -877,8 +876,8 @@ class AssetsAudioPlayer {
     } else {
       _playlistFinished.value = true; // no next elements -> finished
       _playlist.returnToFirst();
-        await _openPlaylistCurrent();
-        await pause();
+      await _openPlaylistCurrent();
+      await pause();
     }
   }
 
@@ -983,9 +982,10 @@ class AssetsAudioPlayer {
           audioInput = await onPlay(audioInput);
         } catch (e) {
           print(e);
-          throw AssetsAudioPlayerError(errorType: AssetsAudioPlayerErrorType.Network , message: e);
+          throw AssetsAudioPlayerError(
+              errorType: AssetsAudioPlayerErrorType.Network, message: e);
         }
-      } 
+      }
       Audio audio = await _handlePlatformAsset(audioInput);
       _showNotification = showNotification;
       audio = await _downloadOrFetchFromCacheIfNecessary(audio);
@@ -1031,7 +1031,7 @@ class AssetsAudioPlayer {
 
         await _sendChannel.invokeMethod('open', params);
 
-        if(onChange != null){
+        if (onChange != null) {
           await onChange();
         }
 
@@ -1046,7 +1046,7 @@ class AssetsAudioPlayer {
         _currentPosition.add(Duration.zero);
         try {
           _playlist.returnToFirst();
-        await pause();
+          await pause();
         } catch (t) {
           print(t);
         }
@@ -1365,6 +1365,7 @@ class AssetsAudioPlayer {
 
   Future<void> _stop({bool removeNotification = true}) async {
     _stopped = true;
+    await onStop();
     await _sendChannel.invokeMethod(
         'stop', {"id": this.id, "removeNotification": removeNotification});
   }
