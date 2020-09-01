@@ -349,7 +349,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         
         if ((self.notificationSettings ?? NotificationSettings()).seekBarEnabled) {
             self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.currentSongDuration
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = _currentTime
+            self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = _currentTime / 1000
         } else {
             self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 0
             self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0
@@ -849,17 +849,17 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     
     private var currentTimeMs : Double {
         get {
-            return _currentTime
+            return _currentTime / 1000
         }
         set(newValue) {
             if(_currentTime != newValue){
-                _currentTime = newValue
+                _currentTime = newValue 
                 self.channel.invokeMethod(Music.METHOD_POSITION, arguments: newValue)
                 
                 if(self.displayMediaPlayerNotification){
                     #if os(iOS)
-                    self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = _currentTime
-                    self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.player!.rate
+                    self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = _currentTime / 1000
+                    self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.player!.rate / 1000
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
                     #endif
                 }
