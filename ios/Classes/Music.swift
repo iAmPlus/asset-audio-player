@@ -348,7 +348,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         }
         
         if ((self.notificationSettings ?? NotificationSettings()).seekBarEnabled) {
-            self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.currentSongDurationMs / 1000
+            self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.currentSongDuration
             self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = _currentTime
         } else {
             self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 0
@@ -466,6 +466,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         #endif
     }
     
+    var currentSongDuration : Float64 = Float64(0.0)
     var currentSongDurationMs : Float64 = Float64(0.0)
     
     func open(assetPath: String,
@@ -569,6 +570,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
                         #endif
                     } else {
+                        let audioDurationSeconds = CMTimeGetSeconds(item.duration)
+                        self?.currentSongDuration = audioDurationSeconds
                         let audioDurationMs = self?.getMillisecondsFromCMTime(item.duration) ?? 0
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": audioDurationMs])
                         self?.currentSongDurationMs = audioDurationMs
