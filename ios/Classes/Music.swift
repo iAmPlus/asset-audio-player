@@ -710,7 +710,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                play()
+                if(self.audioFocusStrategy.resumeAfterInterruption) {
+                    self.invokeListenerPlayPause()
+                }
                 // Interruption ended. Playback should resume.
             } else {
                 // Interruption ended. Playback should not resume.
