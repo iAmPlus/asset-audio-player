@@ -213,13 +213,23 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     func invokeListenerPlayPause(){
         self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
     }
+
+    func invokeListenerNextTrack(){
+        self.channel.invokeMethod(Music.METHOD_NEXT, arguments: [])
+    }
+
+    func invokeListenerPrevTrack(){
+        self.channel.invokeMethod(Music.METHOD_PREV, arguments: [])
+    }
+    
+    let commandCenter = MPRemoteCommandCenter.shared()
+
     
     func setupMediaPlayerNotificationView(notificationSettings: NotificationSettings, audioMetas: AudioMetas, isPlaying: Bool) {
         self.notificationSettings = notificationSettings
         self.audioMetas = audioMetas
         
         UIApplication.shared.beginReceivingRemoteControlEvents()
-        let commandCenter = MPRemoteCommandCenter.shared()
         
         // Fallback on earlier versions
         
@@ -245,16 +255,14 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         // Add handler for Pause Command
         commandCenter.previousTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).prevEnabled
         self.targets["prev"] = commandCenter.previousTrackCommand.addTarget { [unowned self] event in
-            self.channel.invokeMethod(Music.METHOD_PREV, arguments: [])
-            
+            self.invokeListenerPrevTrack()            
             return .success
         }
         
         // Add handler for Pause Command
         commandCenter.nextTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).nextEnabled
         self.targets["next"] = commandCenter.nextTrackCommand.addTarget { [unowned self] event in
-            self.channel.invokeMethod(Music.METHOD_NEXT, arguments: [])
-            
+            self.invokeListenerNextTrack()
             return .success
         }
         
@@ -273,9 +281,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         }
     }
     
-    func deinitMediaPlayerNotifEvent() {
-        let commandCenter = MPRemoteCommandCenter.shared()
-        
+    func deinitMediaPlayerNotifEvent() {        
         if let t = self.targets["play"] {
             commandCenter.playCommand.removeTarget(t)
         }
