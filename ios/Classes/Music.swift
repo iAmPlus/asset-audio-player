@@ -185,7 +185,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     #endif
     
     #if os(iOS)
-    var targets: [String:Any] = [:]
+    // var targets: [String:Any] = [:]
     
     func showNotification(show: Bool) {
         #if os(iOS)
@@ -240,28 +240,28 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.deinitMediaPlayerNotifEvent()
         // Add handler for Play Command
         commandCenter.playCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).playPauseEnabled
-        self.targets["play"] = commandCenter.playCommand.addTarget { [unowned self] event in
+        commandCenter.playCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
             self.invokeListenerPlayPause()
             return .success
         }
         
         // Add handler for Pause Command
         commandCenter.pauseCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).playPauseEnabled
-        self.targets["pause"] = commandCenter.pauseCommand.addTarget { [unowned self] event in
+        commandCenter.pauseCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
             self.invokeListenerPlayPause()
             return .success
         }
         
-        // Add handler for Pause Command
+        // Add handler for Next Command
         commandCenter.previousTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).prevEnabled
-        self.targets["prev"] = commandCenter.previousTrackCommand.addTarget { [unowned self] event in
+        commandCenter.previousTrackCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
             self.invokeListenerPrevTrack()            
             return .success
         }
         
-        // Add handler for Pause Command
+        // Add handler for Prev Command
         commandCenter.nextTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).nextEnabled
-        self.targets["next"] = commandCenter.nextTrackCommand.addTarget { [unowned self] event in
+        commandCenter.nextTrackCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
             self.invokeListenerNextTrack()
             return .success
         }
@@ -281,21 +281,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         }
     }
     
-    func deinitMediaPlayerNotifEvent() {        
-        if let t = self.targets["play"] {
-            commandCenter.playCommand.removeTarget(t)
-        }
-        if let t = self.targets["pause"] {
-            commandCenter.pauseCommand.removeTarget(t)
-        }
-        if let t = self.targets["prev"] {
-            commandCenter.previousTrackCommand.removeTarget(t)
-        }
-        if let t = self.targets["next"] {
-            commandCenter.nextTrackCommand.removeTarget(t)
-        }
-        self.targets.removeAll()
-        
+    func deinitMediaPlayerNotifEvent() {     
+            commandCenter.playCommand.isEnabled = false   
+            commandCenter.playCommand.removeTarget(nil)
+            commandCenter.pauseCommand.isEnabled = false   
+            commandCenter.pauseCommand.removeTarget(nil)
+            commandCenter.previousTrackCommand.isEnabled = false   
+            commandCenter.previousTrackCommand.removeTarget(nil)
+            commandCenter.nextTrackCommand.isEnabled = false   
+            commandCenter.nextTrackCommand.removeTarget(nil)   
     }
     
     var nowPlayingInfo = [String: Any]()
