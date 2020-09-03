@@ -328,24 +328,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         }
         
         self.nowPlayingInfo.removeAll()
-        
-        if let t = audioMetas?.title {
-            self.nowPlayingInfo[MPMediaItemPropertyTitle] = t
-        } else {
-            self.nowPlayingInfo[MPMediaItemPropertyTitle] = ""
-        }
-        
-        if let art = audioMetas?.artist {
-            self.nowPlayingInfo[MPMediaItemPropertyArtist] = art
-        } else {
-            self.nowPlayingInfo[MPMediaItemPropertyArtist] = ""
-        }
-        
-        if let alb = audioMetas?.album {
-            self.nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = alb
-        } else {
-            nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = ""
-        }
+        self.nowPlayingInfo[MPMediaItemPropertyTitle] = audioMetas?.title ?? ""
+        self.nowPlayingInfo[MPMediaItemPropertyArtist] = audioMetas?.artist ?? ""
+        self.nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = audioMetas?.album ?? ""
+
         
         if ((self.notificationSettings ?? NotificationSettings()).seekBarEnabled) {
             self.nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.currentSongDuration
@@ -371,57 +357,57 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
         
         //load image async
-        if let imageMetasType = self.audioMetas?.imageType {
-            if let imageMetas = self.audioMetas?.image {
-                if #available(iOS 10.0, *) {
-                    if(imageMetasType == "asset") {
-                        DispatchQueue.global().async {
-                            var imageKey : String
-                            if(self.audioMetas?.imagePackage != nil){
-                                imageKey = self.registrar.lookupKey(forAsset: imageMetas, fromPackage: self.audioMetas!.imagePackage!)
-                            } else {
-                                imageKey = self.registrar.lookupKey(forAsset: imageMetas)
-                            }
-                            if(!imageKey.isEmpty){
-                                if let imagePath = Bundle.main.path(forResource: imageKey, ofType: nil) {
-                                    if(!imagePath.isEmpty){
-                                        let image: UIImage = UIImage(contentsOfFile: imagePath)!
-                                        DispatchQueue.main.async {
-                                            if(self.audioMetas == audioMetas){ //always the sam song ?
-                                                self.nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { (size) -> UIImage in
-                                                    return image
-                                                })
-                                                MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else { //network or else (file, but not on ios...)
-                        DispatchQueue.global().async {
-                            if let url = URL(string: imageMetas)  {
-                                if let data = try? Data.init(contentsOf: url), let image = UIImage(data: data) {
-                                    let artwork = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { (_ size : CGSize) -> UIImage in
-                                        return image
-                                    })
-                                    DispatchQueue.main.async {
-                                        if(self.audioMetas == audioMetas){ //always the sam song ?
-                                            print(self.nowPlayingInfo.description)
+        // if let imageMetasType = self.audioMetas?.imageType {
+        //     if let imageMetas = self.audioMetas?.image {
+        //         if #available(iOS 10.0, *) {
+        //             if(imageMetasType == "asset") {
+        //                 DispatchQueue.global().async {
+        //                     var imageKey : String
+        //                     if(self.audioMetas?.imagePackage != nil){
+        //                         imageKey = self.registrar.lookupKey(forAsset: imageMetas, fromPackage: self.audioMetas!.imagePackage!)
+        //                     } else {
+        //                         imageKey = self.registrar.lookupKey(forAsset: imageMetas)
+        //                     }
+        //                     if(!imageKey.isEmpty){
+        //                         if let imagePath = Bundle.main.path(forResource: imageKey, ofType: nil) {
+        //                             if(!imagePath.isEmpty){
+        //                                 let image: UIImage = UIImage(contentsOfFile: imagePath)!
+        //                                 DispatchQueue.main.async {
+        //                                     if(self.audioMetas == audioMetas){ //always the sam song ?
+        //                                         self.nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { (size) -> UIImage in
+        //                                             return image
+        //                                         })
+        //                                         MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             } else { //network or else (file, but not on ios...)
+        //                 DispatchQueue.global().async {
+        //                     if let url = URL(string: imageMetas)  {
+        //                         if let data = try? Data.init(contentsOf: url), let image = UIImage(data: data) {
+        //                             let artwork = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { (_ size : CGSize) -> UIImage in
+        //                                 return image
+        //                             })
+        //                             DispatchQueue.main.async {
+        //                                 if(self.audioMetas == audioMetas){ //always the sam song ?
+        //                                     print(self.nowPlayingInfo.description)
                                             
-                                            self.nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
-                                            MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // Fallback on earlier versions
-                }
-            }
-        }
+        //                                     self.nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+        //                                     MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         } else {
+        //             // Fallback on earlier versions
+        //         }
+        //     }
+        // }
     }
     #endif
     
