@@ -210,15 +210,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         #endif
     }
     
-    func invokeListenerPlayPause(){
+    func invokeListenerPlayPause(_ event:MPRemoteCommandEvent){
         self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
     }
 
-    func invokeListenerNextTrack(){
+    func invokeListenerNextTrack(_ event:MPRemoteCommandEvent){
         self.channel.invokeMethod(Music.METHOD_NEXT, arguments: [])
     }
 
-    func invokeListenerPrevTrack(){
+    func invokeListenerPrevTrack(_ event:MPRemoteCommandEvent){
         self.channel.invokeMethod(Music.METHOD_PREV, arguments: [])
     }
     
@@ -241,43 +241,40 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         // Add handler for Play Command
         commandCenter.playCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).playPauseEnabled
         commandCenter.playCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
-            self.invokeListenerPlayPause()
+            self.invokeListenerPlayPause(event)
             return .success
         }
         
         // Add handler for Pause Command
         commandCenter.pauseCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).playPauseEnabled
         commandCenter.pauseCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
-            self.invokeListenerPlayPause()
+            self.invokeListenerPlayPause(event)
             return .success
         }
         
         // Add handler for Next Command
         commandCenter.previousTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).prevEnabled
         commandCenter.previousTrackCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
-            self.invokeListenerPrevTrack()            
+            self.invokeListenerPrevTrack(event)            
             return .success
         }
         
         // Add handler for Prev Command
         commandCenter.nextTrackCommand.isEnabled = (self.notificationSettings ?? NotificationSettings()).nextEnabled
         commandCenter.nextTrackCommand.addTarget { (event) -> MPRemoteCommandHandlerStatus in
-            self.invokeListenerNextTrack()
+            self.invokeListenerNextTrack(event)
             return .success
         }
         
         //https://stackoverflow.com/questions/34563451/set-mpnowplayinginfocenter-with-other-background-audio-playing
         //This isn't currently possible in iOS. Even just changing your category options to .MixWithOthers causes your nowPlayingInfo to be ignored.
         do {
-            if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
-                try AVAudioSession.sharedInstance().setActive(true)
-            } else {
-                try AVAudioSession.sharedInstance().setCategory(.playback, options: [])
-                try AVAudioSession.sharedInstance().setActive(true)
-            }
-        } catch let error {
-            print(error)
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.mixWithOthers)
+            NSLog("Playback OK")
+            try AVAudioSession.sharedInstance().setActive(true)
+            NSLog("Session is Active")
+        } catch {
+            NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
         }
     }
     
@@ -289,7 +286,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             commandCenter.previousTrackCommand.isEnabled = false   
             commandCenter.previousTrackCommand.removeTarget(nil)
             commandCenter.nextTrackCommand.isEnabled = false   
-            commandCenter.nextTrackCommand.removeTarget(nil)   
+            commandCenter.nextTrackCommand.removeTarget(nil)     
     }
     
     var nowPlayingInfo = [String: Any]()
@@ -697,7 +694,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
-                    self.invokeListenerPlayPause()
+                    self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
                 }
                 // Interruption ended. Playback should resume.
             } else {
