@@ -1,10 +1,6 @@
-#if canImport(UIKit)
 import Flutter
 import AVFoundation
 import UIKit
-#elseif os(OSX)
-import FlutterMacOS
-#endif
 
 import MediaPlayer
 
@@ -269,17 +265,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         
         //https://stackoverflow.com/questions/34563451/set-mpnowplayinginfocenter-with-other-background-audio-playing
         //This isn't currently possible in iOS. Even just changing your category options to .MixWithOthers causes your nowPlayingInfo to be ignored.
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback)
-            NSLog("Playback OK")
-            try AVAudioSession.sharedInstance().setActive(true)
-            NSLog("Session is Active")
-        } catch {
-            NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
-        }
     }
     
-    func deinitMediaPlayerNotifEvent() {     
+   func deinitMediaPlayerNotifEvent() {     
             commandCenter.playCommand.isEnabled = false   
             commandCenter.playCommand.removeTarget(nil)
             commandCenter.pauseCommand.isEnabled = false   
@@ -474,7 +462,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         }
         
         do {
-            #if os(iOS)
             let category = getAudioCategory(respectSilentMode: respectSilentMode, showNotification: displayNotification)
             let mode = AVAudioSession.Mode.default
             
@@ -484,19 +471,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             print("displayNotification " + displayNotification.description)
             print("url: " + url.absoluteString)
             
-            /* set session category and mode with options */
-            if #available(iOS 10.0, *) {
-                //try AVAudioSession.sharedInstance().setCategory(category, mode: mode, options: [.mixWithOthers])
-                try AVAudioSession.sharedInstance().setCategory(category, mode: .default, options: [])
-                try AVAudioSession.sharedInstance().setActive(true)
-            } else {
-                
-                try AVAudioSession.sharedInstance().setCategory(category)
-                try AVAudioSession.sharedInstance().setActive(true)
-                
-            }
-            #endif
-            
+            do {
+                           try AVAudioSession.sharedInstance().setCategory(.playback , options:[])
+                           NSLog("Playback OK")
+                           try AVAudioSession.sharedInstance().setActive(true)
+                           NSLog("Session is Active")
+                       } catch {
+                           NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
+                       }
+                        
             var item : SlowMoPlayerItem
             if networkHeaders != nil && networkHeaders!.count > 0 {
                 let asset = AVURLAsset(url: url, options: [
@@ -515,18 +498,17 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.audioFocusStrategy = audioFocusStrategy
             self.audioMetas = audioMetas
             
+           
+            
             self._lastOpenedPath = assetPath
             
             let notifCenter = NotificationCenter.default
             
-            #if os(iOS)
-            //phone call
             notifCenter.addObserver(self,
                                     selector: #selector(self.handleInterruption(_:)),
                                     name: AVAudioSession.interruptionNotification,
                                     object: AVAudioSession.sharedInstance()
             )
-            #endif
             
             notifCenter.addObserver(self, selector: #selector(self.playerDidFinishPlaying(note:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: item)
             
@@ -548,18 +530,14 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": 0.0])
                         self?.currentSongDurationMs = Float64(0.0)
                         self?.isLiveStream = true
-                        #if os(iOS)
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
-                        #endif
                     } else {
                         let audioDurationSeconds = CMTimeGetSeconds(item.duration)
                         self?.currentSongDuration = audioDurationSeconds
                         let audioDurationMs = self?.getMillisecondsFromCMTime(item.duration) ?? 0
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": audioDurationMs])
                         self?.currentSongDurationMs = audioDurationMs
-                        #if os(iOS)
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
-                        #endif
                     }
                     
                     if(autoStart == true){
