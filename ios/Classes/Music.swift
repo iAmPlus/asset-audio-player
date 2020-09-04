@@ -669,18 +669,12 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if options.contains(.shouldResume) {
-                print("sould resume")
-                if(self.audioFocusStrategy.resumeAfterInterruption) {
-                    self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
-                } else {
-                    self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
-                }
-                // Interruption ended. Playback should resume.
+            if(self.audioFocusStrategy.resumeAfterInterruption) {
+                self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
             } else {
-                print("won't resume")
-                // Interruption ended. Playback should not resume.
+                self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
             }
+
             
         default: ()
         }
