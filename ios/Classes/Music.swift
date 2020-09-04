@@ -476,9 +476,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 NSLog("Playback OK")
                 try AVAudioSession.sharedInstance().setActive(true)
                 NSLog("Session is Active")
-                       } catch {
-                           NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
-                       }
+            } catch {
+                NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
+            }
                         
             var item : SlowMoPlayerItem
             if networkHeaders != nil && networkHeaders!.count > 0 {
