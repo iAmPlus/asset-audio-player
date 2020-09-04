@@ -270,7 +270,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         //https://stackoverflow.com/questions/34563451/set-mpnowplayinginfocenter-with-other-background-audio-playing
         //This isn't currently possible in iOS. Even just changing your category options to .MixWithOthers causes your nowPlayingInfo to be ignored.
         do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.mixWithOthers)
+            try AVAudioSession.sharedInstance().setCategory(.playback, options:[])
             NSLog("Playback OK")
             try AVAudioSession.sharedInstance().setActive(true)
             NSLog("Session is Active")
