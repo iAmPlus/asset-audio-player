@@ -507,7 +507,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             notifCenter.addObserver(self,
                                     selector: #selector(self.handleInterruption),
                                     name: AVAudioSession.interruptionNotification,
-                                    object: AVAudioSession.sharedInstance()
+                                    object: nil
             )
             
             notifCenter.addObserver(self, selector: #selector(self.playerDidFinishPlaying(note:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: item)
@@ -645,41 +645,34 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         return self.getMillisecondsFromCMTime(time) / 1000;
     }
     
-    @objc func handleInterruption(_ notification: Notification) {
-        #if os(iOS)
-        if(!self.audioFocusStrategy.request) {
-            return
-        }
-        
+    @objc func handleInterruption(notification: Notification) {
         guard let userInfo = notification.userInfo,
             let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
             let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
                 return
         }
-        
-        // Switch over the interruption type.
-        switch type {
-            
-        case .began:
-            // An interruption began. Update the UI as needed.
-            pause()
-            
-        case .ended:
-            // An interruption ended. Resume playback, if appropriate.
-            
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if(self.audioFocusStrategy.resumeAfterInterruption) {
-                self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
-            } else {
-                self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
-            }
 
-            
-        default: ()
+        if type == .began {
+            print("Interruption began")
+            // Interruption began, take appropriate actions
         }
-        #endif
+        else if type == .ended {
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) {
+                    print("Interruption Ended - playback should resume")
+                    // Interruption Ended - playback should resume
+                    self.play()
+                } else {
+                    // Interruption Ended - playback should NOT resume
+                    print("Interruption Ended - playback should NOT resume")
+                }
+            }
+        } else{
+            print("Something wrong!")
+        }
     }
+    
     
     private func setBuffering(_ value: Bool){
         self.channel.invokeMethod(Music.METHOD_IS_BUFFERING, arguments: value)
