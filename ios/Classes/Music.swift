@@ -476,9 +476,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 NSLog("Playback OK")
                 try AVAudioSession.sharedInstance().setActive(true)
                 NSLog("Session is Active")
-                       } catch {
-                           NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
-                       }
+            } catch {
+                NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
+            }
                         
             var item : SlowMoPlayerItem
             if networkHeaders != nil && networkHeaders!.count > 0 {
@@ -505,7 +505,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             let notifCenter = NotificationCenter.default
             
             notifCenter.addObserver(self,
-                                    selector: #selector(self.handleInterruption(_:)),
+                                    selector: #selector(self.handleInterruption),
                                     name: AVAudioSession.interruptionNotification,
                                     object: AVAudioSession.sharedInstance()
             )
@@ -670,11 +670,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
+                print("sould resume")
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
+                    self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
+                } else {
                     self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
                 }
                 // Interruption ended. Playback should resume.
             } else {
+                print("won't resume")
                 // Interruption ended. Playback should not resume.
             }
             
