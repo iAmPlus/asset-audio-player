@@ -472,10 +472,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             print("url: " + url.absoluteString)
             
             do {
-                           try AVAudioSession.sharedInstance().setCategory(.playback , options:[])
-                           NSLog("Playback OK")
-                           try AVAudioSession.sharedInstance().setActive(true)
-                           NSLog("Session is Active")
+                try AVAudioSession.sharedInstance().setCategory(category , options:[])
+                NSLog("Playback OK")
+                try AVAudioSession.sharedInstance().setActive(true)
+                NSLog("Session is Active")
                        } catch {
                            NSLog("ERROR: CANNOT PLAY MUSIC IN BACKGROUND. Message from code: \"\(error)\"")
                        }
