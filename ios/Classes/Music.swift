@@ -269,13 +269,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     
    func deinitMediaPlayerNotifEvent() {     
             commandCenter.playCommand.isEnabled = false   
-            commandCenter.playCommand.removeTarget(nil)
+            commandCenter.playCommand.removeTarget(self)
             commandCenter.pauseCommand.isEnabled = false   
-            commandCenter.pauseCommand.removeTarget(nil)
+            commandCenter.pauseCommand.removeTarget(self)
             commandCenter.previousTrackCommand.isEnabled = false   
-            commandCenter.previousTrackCommand.removeTarget(nil)
+            commandCenter.previousTrackCommand.removeTarget(self)
             commandCenter.nextTrackCommand.isEnabled = false   
-            commandCenter.nextTrackCommand.removeTarget(nil)     
+            commandCenter.nextTrackCommand.removeTarget(self)     
     }
     
     #endif
@@ -507,7 +507,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             notifCenter.addObserver(self,
                                     selector: #selector(self.handleInterruption),
                                     name: AVAudioSession.interruptionNotification,
-                                    object: nil
+                                    object: AVAudioSession.sharedInstance()
             )
             
             notifCenter.addObserver(self, selector: #selector(self.playerDidFinishPlaying(note:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: item)
