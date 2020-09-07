@@ -269,13 +269,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     
    func deinitMediaPlayerNotifEvent() {     
             commandCenter.playCommand.isEnabled = false   
-            commandCenter.playCommand.removeTarget(nil)
+            commandCenter.playCommand.removeTarget(self)
             commandCenter.pauseCommand.isEnabled = false   
-            commandCenter.pauseCommand.removeTarget(nil)
+            commandCenter.pauseCommand.removeTarget(self)
             commandCenter.previousTrackCommand.isEnabled = false   
-            commandCenter.previousTrackCommand.removeTarget(nil)
+            commandCenter.previousTrackCommand.removeTarget(self)
             commandCenter.nextTrackCommand.isEnabled = false   
-            commandCenter.nextTrackCommand.removeTarget(nil)     
+            commandCenter.nextTrackCommand.removeTarget(self)     
     }
     
     #endif
@@ -505,7 +505,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             let notifCenter = NotificationCenter.default
             
             notifCenter.addObserver(self,
-                                    selector: #selector(self.handleInterruption(_:)),
+                                    selector: #selector(self.handleInterruption),
                                     name: AVAudioSession.interruptionNotification,
                                     object: AVAudioSession.sharedInstance()
             )
@@ -645,43 +645,35 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         return self.getMillisecondsFromCMTime(time) / 1000;
     }
     
-    @objc func handleInterruption(_ notification: Notification) {
-        #if os(iOS)
-        if(!self.audioFocusStrategy.request) {
-            return
-        }
-        
+    @objc func handleInterruption(notification: Notification) {
         guard let userInfo = notification.userInfo,
             let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
             let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
                 return
         }
-        
-        // Switch over the interruption type.
-        switch type {
-            
-        case .began:
-            // An interruption began. Update the UI as needed.
-            pause()
-            
-        case .ended:
-            // An interruption ended. Resume playback, if appropriate.
-            
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if options.contains(.shouldResume) {
-                if(self.audioFocusStrategy.resumeAfterInterruption) {
-                    self.channel.invokeMethod(Music.METHOD_PLAY_OR_PAUSE, arguments: [])
-                }
-                // Interruption ended. Playback should resume.
-            } else {
-                // Interruption ended. Playback should not resume.
-            }
-            
-        default: ()
+
+        if type == .began {
+            print("Interruption began")
+            // Interruption began, take appropriate actions
         }
-        #endif
+        else if type == .ended {
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) {
+                    print("Interruption Ended - playback should resume")
+                    // Interruption Ended - playback should resume
+                    self.play()
+                } else {
+                    // Interruption Ended - playback should NOT resume
+                    print("Interruption Ended - playback should NOT resume")
+                    self.play()
+                }
+            }
+        } else{
+            print("Something wrong!")
+        }
     }
+    
     
     private func setBuffering(_ value: Bool){
         self.channel.invokeMethod(Music.METHOD_IS_BUFFERING, arguments: value)
