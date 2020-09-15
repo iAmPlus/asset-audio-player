@@ -978,13 +978,7 @@ class AssetsAudioPlayer {
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
       if (onPlay != null) {
-        try {
-          audioInput = await onPlay(audioInput);
-        } catch (e) {
-          print(e);
-          throw AssetsAudioPlayerError(
-              errorType: AssetsAudioPlayerErrorType.Network, message: e);
-        }
+        audioInput = await onPlay(audioInput);
       }
       Audio audio = await _handlePlatformAsset(audioInput);
       _showNotification = showNotification;
