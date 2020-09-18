@@ -1204,6 +1204,7 @@ class AssetsAudioPlayer {
       }
       _acceptUserOpen = true;
     } catch (t) {
+      _isBuffering.add(false);
       _acceptUserOpen = true;
       throw t;
     }
