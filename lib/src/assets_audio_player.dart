@@ -566,7 +566,7 @@ class AssetsAudioPlayer {
                 hasNext: _playlist.hasNext(),
                 playlist: ReadingPlaylist(
                     audios: _playlist.playlist.audios,
-                    currentIndex: _playlist.playlistIndex,
+                    currentIndex: _playlist.indexList[_playlist.playlistIndex],
                     nextIndex: _playlist.nextIndex(),
                     previousIndex: _playlist.previousIndex()),
               );
@@ -977,6 +977,22 @@ class AssetsAudioPlayer {
     final currentAudio = _lastOpenedAssetsAudio;
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
+      _isBuffering.add(true);
+      pause();
+      final current = Playing(
+        audio: PlayingAudio(
+          audio: audioInput,
+          duration: Duration.zero,
+        ),
+        index: _playlist.indexList[_playlist.playlistIndex],
+        hasNext: _playlist.hasNext(),
+        playlist: ReadingPlaylist(
+            audios: _playlist.playlist.audios,
+            currentIndex: _playlist.indexList[_playlist.playlistIndex],
+            nextIndex: _playlist.nextIndex(),
+            previousIndex: _playlist.previousIndex()),
+      );
+      _current.add(current);
       if (onPlay != null) {
         audioInput = await onPlay(audioInput);
       }
