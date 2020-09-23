@@ -762,7 +762,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         // let currentPosMillis = self._currentTime
         
         if(loop){
-            #if os(iOS)
             if #available(iOS 10.0, *) {
                 if let player = self.player {
                     if(!player.items().isEmpty){
@@ -772,7 +771,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             }
             #endif
         } else {
-            #if os(iOS)
             if #available(iOS 10.0, *) {
                 (self.looper as? AVPlayerLooper)?.disableLooping()
                 self.looper = nil
