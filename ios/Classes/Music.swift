@@ -766,7 +766,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             if #available(iOS 10.0, *) {
                 if let player = self.player {
                     if(!player.items().isEmpty){
-                        self.player.numberOfLoops =  -1
+                        self.looper = AVPlayerLooper(player: player, templateItem: player.items()[0])
                     }
                 }
             }
@@ -774,7 +774,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         } else {
             #if os(iOS)
             if #available(iOS 10.0, *) {
-                 self.player.numberOfLoops =  0
+                (self.looper as? AVPlayerLooper)?.disableLooping()
+                self.looper = nil
             }
         }
         // seek(to: Int(currentPosMillis))
