@@ -665,6 +665,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self.play()
                 } else {
                     // Interruption Ended - playback should NOT resume
+                    print("Interruption Ended - playback should NOT resume")
+                    self.play()
                 }
             }
         } else{
@@ -677,7 +679,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.channel.invokeMethod(Music.METHOD_IS_BUFFERING, arguments: value)
     }
     
-    func seek(to: Int, loop:bool){
+    func seek(to: Int){
         let targetTime = CMTimeMakeWithSeconds(Double(to) / 1000.0, preferredTimescale: 1)
         self.player?.seek(to: targetTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
@@ -762,6 +764,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         let currentPosMillis = self._currentTime
         
         if(loop){
+            #if os(iOS)
             if #available(iOS 10.0, *) {
                 if let player = self.player {
                     if(!player.items().isEmpty){
@@ -769,12 +772,27 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                 }
             }
+            #elseif os(OSX)
+            if #available(OSX 10.12, *) {
+                if let player = self.player {
+                    if(player.items().isEmpty){
+                        self.looper = AVPlayerLooper(player: player, templateItem: player.items()[0])
+                    }
+                }
+            }
             #endif
         } else {
+            #if os(iOS)
             if #available(iOS 10.0, *) {
                 (self.looper as? AVPlayerLooper)?.disableLooping()
                 self.looper = nil
             }
+            #elseif os(OSX)
+            if #available(OSX 10.12, *) {
+                (self.looper as? AVPlayerLooper)?.disableLooping()
+                self.looper = nil
+            }
+            #endif
         }
         seek(to: Int(currentPosMillis))
     }
