@@ -424,11 +424,11 @@ class AssetsAudioPlayer {
   Future<void> setLoopMode(LoopMode value) async {
     _playlist.loopMode = value;
     _loopMode.value = value;
-    if (_playlist.isSingleAudio || value == LoopMode.single) {
-      _loopSingleAudio(value != LoopMode.none);
-    } else {
-      _loopSingleAudio(false);
-    }
+    // if (_playlist.isSingleAudio || value == LoopMode.single) {
+    //   _loopSingleAudio(value != LoopMode.none);
+    // } else {
+    //   _loopSingleAudio(false);
+    // }
   }
 
   /// assign the shuffling state : true -> shuffling, false -> not shuffling
@@ -804,7 +804,16 @@ class AssetsAudioPlayer {
     if (_playlist != null) {
       if (loopMode.value == LoopMode.single) {
         if (!requestByUser) {
-          await seek(Duration.zero);
+          final curr = this._current.value;
+          if (curr != null) {
+            _playlistAudioFinished.add(Playing(
+              audio: curr.audio,
+              index: curr.index,
+              hasNext: true,
+              playlist: this._current.value.playlist,
+            ));
+          }
+          await _openPlaylistCurrent();
           return true;
         } else {
           if (!keepLoopMode) {
@@ -812,8 +821,7 @@ class AssetsAudioPlayer {
                 .playlist); //on loop.single + next, change it to loopMode.playlist
           }
         }
-      }
-      if (_playlist.hasNext()) {
+      } else if (_playlist.hasNext()) {
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
