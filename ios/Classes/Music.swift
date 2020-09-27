@@ -518,7 +518,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             self.setBuffering(true)
             self.isLiveStream = false
-            observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
+            var isObservingCurrentItem = false
+
+            if isObservingCurrentItem {
+                observerStatus.removeAll()
+            }
+
+            observerStatus.append( item.observe(\.status,changeHandler: { [weak self] (item, value) in
                 
                 switch item.status {
                 case .unknown:
@@ -555,6 +561,14 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self?.setBuffering(false)
                     
                     self?.addPostPlayingBufferListeners(item: item)
+                    if(isObservingCurrentItem ) {
+                        if((self?.observerStatus.count ?? -1) > 0){
+                            self?.observerStatus.removeAll()
+                        }
+
+                    }
+                    
+                    isObservingCurrentItem = false
                     
                     result(nil)
                 case .failed:
@@ -573,7 +587,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 }
             }))
             
-            
+            isObservingCurrentItem = true
+
             
             if(self.player == nil){
                 //log("player is null")
@@ -666,7 +681,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 } else {
                     // Interruption Ended - playback should NOT resume
                     print("Interruption Ended - playback should NOT resume")
-                    self.play()
                 }
             }
         } else{
@@ -1433,3 +1447,4 @@ func parseAudioFocusStrategy(_ from: NSDictionary?) -> AudioFocusStrategy {
         return  AudioFocusStrategy.None()
     }
 }
+
