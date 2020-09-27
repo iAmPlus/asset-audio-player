@@ -670,6 +670,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         if type == .began {
             print("Interruption began")
             // Interruption began, take appropriate actions
+            self.pause();
         }
         else if type == .ended {
             if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
@@ -677,7 +678,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 if options.contains(.shouldResume) {
                     print("Interruption Ended - playback should resume")
                     // Interruption Ended - playback should resume
-                    self.play()
+                
                 } else {
                     // Interruption Ended - playback should NOT resume
                     print("Interruption Ended - playback should NOT resume")
