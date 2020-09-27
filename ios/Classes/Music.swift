@@ -678,7 +678,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 if options.contains(.shouldResume) {
                     print("Interruption Ended - playback should resume")
                     // Interruption Ended - playback should resume
-                
+                self.play();
                 } else {
                     // Interruption Ended - playback should NOT resume
                     print("Interruption Ended - playback should NOT resume")
