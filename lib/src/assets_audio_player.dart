@@ -1509,7 +1509,12 @@ class _CurrentPlaylist {
 
   shuffleAudios() {
     for (var i = 0; i < this.playlist.audios.length; i++) {
-      int index = _shuffleNumbers();
+      int index;
+      if (i <= playlistIndex) {
+        index = i;
+      } else {
+        index = _shuffleNumbers();
+      }
       indexList.add(index);
     }
   }
