@@ -16,6 +16,7 @@ dependencies:
   uuid: ^2.0.4
   http: ^0.12.1 #to download / cache network files
   path_provider: ^1.6.8 # removed this because it cancel flutter/android/ios on pub.dev path_provider: ^1.6.10
+  async: ^2.4.2
 
 
   # The design on https://flutter.dev/go/federated-plugins was to leave
