@@ -505,7 +505,7 @@ class AssetsAudioPlayer {
   _init() {
     //default action, can be overriden using player.onErrorDo = (error, player) { ACTION };
     onErrorDo = (errorHandler) {
-      print(errorHandler.error.message);
+      print('assets_audio_player : ${errorHandler.error.message}');
       errorHandler.player.stop();
     };
 
@@ -606,7 +606,8 @@ class AssetsAudioPlayer {
           }
           break;
         default:
-          print('[ERROR] Channel method ${call.method} not implemented.');
+          print(
+              'assets_audio_player : [ERROR] Channel method ${call.method} not implemented.');
       }
     });
     _registerToAppLifecycle();
@@ -926,6 +927,20 @@ class AssetsAudioPlayer {
 
   void _updatePlaylistIndexes() {
     _playlist.clearPlayerAudio(shuffle);
+    // final currentAudio = Playing(
+    //   audio: PlayingAudio(
+    //     audio: current.value.audio.audio,
+    //     duration: realtimePlayingInfos?.value?.currentPosition ?? Duration.zero,
+    //   ),
+    //   index: _playlist.indexList[_playlist.playlistIndex],
+    //   hasNext: _playlist.hasNext(),
+    //   playlist: ReadingPlaylist(
+    //       audios: _playlist.playlist.audios,
+    //       currentIndex: _playlist.indexList[_playlist.playlistIndex],
+    //       nextIndex: _playlist.nextIndex(),
+    //       previousIndex: _playlist.previousIndex()),
+    // );
+    // _current.add(currentAudio);
   }
 
   /// Converts a number to duration
@@ -991,7 +1006,7 @@ class AssetsAudioPlayer {
   }) async {
     if (!(cancelableOperation?.isCompleted ?? true)) {
       cancelableOperation.cancel();
-      print('canceled');
+      print('assets_audio_player : canceled');
     }
     _isLoading.add(true);
     final focusStrategy = audioFocusStrategy ?? defaultFocusStrategy;
@@ -1081,9 +1096,9 @@ class AssetsAudioPlayer {
             _playlist.returnToFirst();
             await pause();
           } catch (t) {
-            print(t);
+            print('assets_audio_player : $t');
           }
-          print(e);
+          print('assets_audio_player : $e');
           return Future.error(e);
         }
       });
@@ -1468,6 +1483,7 @@ class AssetsAudioPlayer {
 
 class _CurrentPlaylist {
   final Playlist playlist;
+  Random _random = Random();
 
   final double volume;
   final bool respectSilentMode;
@@ -1480,9 +1496,10 @@ class _CurrentPlaylist {
   final HeadPhoneStrategy headPhoneStrategy;
 
   int playlistIndex = 0;
+  int shuffledIndex = 0;
 
   int nextIndex() {
-    int index = indexList.indexWhere((element) => playlistIndex == element);
+    int index = playlistIndex;
     if (index + 1 == indexList.length) {
       return indexList.first;
     } else {
@@ -1491,7 +1508,7 @@ class _CurrentPlaylist {
   }
 
   int previousIndex() {
-    int index = indexList.indexWhere((element) => playlistIndex == element);
+    int index = playlistIndex;
     if (index == 0) {
       return indexList.last;
     } else {
@@ -1500,45 +1517,46 @@ class _CurrentPlaylist {
   }
 
   selectNext() {
-    int index = indexList.indexWhere((element) => playlistIndex == element);
+    print('assets_audio_player : current index => $playlistIndex');
     if (hasNext()) {
-      index = index + 1;
+      playlistIndex = playlistIndex + 1;
+    } else {
+      playlistIndex = playlistIndex;
     }
-    playlistIndex = index;
+    print('assets_audio_player : next index => $playlistIndex');
   }
 
   List<int> indexList = [];
 
-  sortAudios() {
+  clearPlayerAudio(bool shuffle) {
+    var prevIndexList = [];
+    prevIndexList.addAll(indexList);
+    indexList.clear();
+    if (shuffle) {
+      indexList.add(shuffledIndex);
+      _shuffleAudios();
+    } else {
+      _sortAudios();
+    }
+    print('assets_audio_player : $indexList');
+  }
+
+  void _sortAudios() {
     for (var i = 0; i < this.playlist.audios.length; i++) {
       indexList.add(i);
     }
   }
 
-  clearPlayerAudio(bool shuffle) {
-    indexList.clear();
-    if (shuffle) {
-      shuffleAudios();
-    } else {
-      sortAudios();
-    }
-  }
-
-  shuffleAudios() {
-    for (var i = 0; i < this.playlist.audios.length; i++) {
+  void _shuffleAudios() {
+    for (var i = 0; i < this.playlist.audios.length - 1; i++) {
       int index;
-      if (i <= playlistIndex) {
-        index = i;
-      } else {
-        index = _shuffleNumbers();
-      }
+      index = _shuffleNumbers();
       indexList.add(index);
     }
   }
 
   int _shuffleNumbers() {
-    Random random = Random();
-    int index = random.nextInt(playlist.audios.length);
+    int index = _random.nextInt(playlist.audios.length);
     if (indexList.contains(index)) {
       index = _shuffleNumbers();
     }
@@ -1547,10 +1565,13 @@ class _CurrentPlaylist {
 
   int moveTo(int index) {
     if (index < 0) {
+      shuffledIndex = index;
       playlistIndex = indexList.indexWhere((element) => element == 0);
     } else {
+      shuffledIndex = index;
       playlistIndex = indexList.indexWhere((element) => element == index);
     }
+    print('assets_audio_player : moveTo => $playlistIndex');
     return playlistIndex;
   }
 
@@ -1568,7 +1589,7 @@ class _CurrentPlaylist {
   }
 
   bool hasNext() {
-    int index = indexList.indexWhere((element) => playlistIndex == element);
+    int index = playlistIndex;
     return index + 1 < indexList.length;
   }
 
