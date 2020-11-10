@@ -565,7 +565,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             self.setBuffering(true)
             self.isLiveStream = false
-
+            var isObservingCurrentItem = false
+            
             if isObservingCurrentItem {	
                 observerStatus.removeAll()	
             }
