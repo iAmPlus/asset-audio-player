@@ -565,6 +565,12 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             self.setBuffering(true)
             self.isLiveStream = false
+            var isObservingCurrentItem = false
+            
+            if isObservingCurrentItem {	
+                observerStatus.removeAll()	
+            }
+
             observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
                 
                 switch item.status {
@@ -605,6 +611,14 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     
                     self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
+                     if(isObservingCurrentItem ) {	                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                        if((self?.observerStatus.count ?? -1) > 0){	
+                            self?.observerStatus.removeAll()	
+                        }	
+
+                    }	
+
+                    isObservingCurrentItem = false
                     
                     result(nil)
                 case .failed:
