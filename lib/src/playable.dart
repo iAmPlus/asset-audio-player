@@ -96,12 +96,16 @@ class Metas {
   final String album;
   final String artistID;
   final String albumID;
+  final String hexColor;
+  final String languageID;
   final Map<String, dynamic> extra;
   final MetasImage image;
   final MetasImage onImageLoadFail;
 
   Metas(
-      {this.id,
+      {this.hexColor,
+      this.languageID,
+      this.id,
       this.title,
       this.artist,
       this.artistID,
