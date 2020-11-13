@@ -810,7 +810,11 @@ class AssetsAudioPlayer {
     bool keepLoopMode = true,
   }) async {
     if (_playlist != null) {
+      print('assets_audio_player : nextSong');
+
       if (loopMode.value == LoopMode.single) {
+        print('assets_audio_player : loopMode = ${loopMode.value}');
+
         if (!requestByUser) {
           final curr = this._current.value;
           if (curr != null) {
@@ -830,6 +834,7 @@ class AssetsAudioPlayer {
           }
         }
       } else if (_playlist.hasNext()) {
+        print('assets_audio_player : _playlist.hasNext()');
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
@@ -844,6 +849,7 @@ class AssetsAudioPlayer {
 
         return true;
       } else if (loopMode.value == LoopMode.playlist) {
+        print('assets_audio_player : loopMode = ${loopMode.value}');
         //last element
         final curr = this._current.value;
         if (curr != null) {
@@ -860,11 +866,23 @@ class AssetsAudioPlayer {
 
         return true;
       } else if (stopIfLast) {
+        print('assets_audio_player : stopIfLast');
+
+        final curr = this._current.value;
+        if (curr != null) {
+          _playlistAudioFinished.add(Playing(
+            audio: curr.audio,
+            index: curr.index,
+            hasNext: false,
+            playlist: this._current.value.playlist,
+          ));
+        }
         _playlist.returnToFirst();
-        await _openPlaylistCurrent();
-        await pause();
+        await _openPlaylistCurrent(autoStart: false);
         return true;
       } else if (requestByUser) {
+        print('assets_audio_player : requestByUser');
+
         //last element
         final curr = this._current.value;
         if (curr != null) {
@@ -880,6 +898,22 @@ class AssetsAudioPlayer {
         await _openPlaylistCurrent();
 
         return true;
+      } else {
+        print('assets_audio_player : something else');
+
+        final curr = this._current.value;
+        if (curr != null) {
+          _playlistAudioFinished.add(Playing(
+            audio: curr.audio,
+            index: curr.index,
+            hasNext: false,
+            playlist: this._current.value.playlist,
+          ));
+        }
+        print('assets_audio_player : ${curr.audio.audio.metas.title}');
+        _playlist.returnToFirst();
+        await _openPlaylistCurrent(autoStart: false);
+        return true;
       }
     }
     return false;
@@ -891,9 +925,6 @@ class AssetsAudioPlayer {
       _playlistFinished.value = false; //continue playing the playlist
     } else {
       _playlistFinished.value = true; // no next elements -> finished
-      _playlist.returnToFirst();
-      await _openPlaylistCurrent();
-      await pause();
     }
   }
 
@@ -1029,8 +1060,9 @@ class AssetsAudioPlayer {
       );
       _current.add(current);
 
-      cancelableOperation = CancelableOperation.fromFuture(onPlay(audioInput))
-          .then((value) async {
+      cancelableOperation =
+          await CancelableOperation.fromFuture(onPlay(audioInput))
+              .then((value) async {
         audioInput = value;
         Audio audio = await _handlePlatformAsset(audioInput);
         _showNotification = showNotification;
