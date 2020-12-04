@@ -1060,18 +1060,21 @@ class AssetsAudioPlayer {
       );
       _current.add(current);
 
-      cancelableOperation =
-          await CancelableOperation.fromFuture(onPlay(audioInput))
-              .then((value) async {
-        audioInput = value;
-        Audio audio = await _handlePlatformAsset(audioInput);
-        _showNotification = showNotification;
-        audio = await _downloadOrFetchFromCacheIfNecessary(audio);
-
-        audio.setCurrentlyOpenedIn(_playerEditor);
-        _isBuffering.add(true);
-
+      cancelableOperation = await CancelableOperation.fromFuture(
+          onPlay(audioInput).catchError((error) async {
+        _isBuffering.add(false);
+        _isLoading.add(false);
+        print('assets_audio_player : $error');
+        return Future.error(error);
+      })).then((value) async {
         try {
+          audioInput = value;
+          Audio audio = await _handlePlatformAsset(audioInput);
+          _showNotification = showNotification;
+          audio = await _downloadOrFetchFromCacheIfNecessary(audio);
+
+          audio.setCurrentlyOpenedIn(_playerEditor);
+          _isBuffering.add(true);
           Map<String, dynamic> params = {
             "id": this.id,
             "audioType": audioTypeDescription(audio.audioType),
@@ -1129,6 +1132,7 @@ class AssetsAudioPlayer {
             await pause();
           } catch (t) {
             print('assets_audio_player : $t');
+            return Future.error(e);
           }
           print('assets_audio_player : $e');
           return Future.error(e);
@@ -1278,7 +1282,7 @@ class AssetsAudioPlayer {
       _isBuffering.add(false);
       _isLoading.add(false);
       _acceptUserOpen = true;
-      throw t;
+      return Future.error(t);
     }
   }
 
