@@ -43,6 +43,7 @@ class NotificationService : Service() {
         const val manifestIconStop = "assets.audio.player.notification.icon.stop"
 
         private var stateCompat : PlaybackStateCompat? = null
+        private lateinit var mediaStyle: androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle
 
         fun timeDiffer(old: PlaybackStateCompat?, new: PlaybackStateCompat, minDifferenceMS: Long) : Boolean {
             if(old == null){
@@ -60,19 +61,8 @@ class NotificationService : Service() {
                         .setActions(ACTION_SEEK_TO)
                         .setState(state, currentPositionMs, if (isPlaying) speed else 0f)
                         .build()
-
-                if(
-                        //pause -> play, play-> pause
-                        stateCompat?.state != newState.state ||
-                        //speed changed
-                        stateCompat?.playbackSpeed != speed ||
-                        //seek
-                        timeDiffer(stateCompat, newState, 2000)
-                ){
-                    stateCompat = newState
-                    mediaSession.setPlaybackState(stateCompat)
-                }
-
+                stateCompat = newState
+                mediaSession.setPlaybackState(stateCompat)
             }
         }
 
@@ -232,6 +222,10 @@ class NotificationService : Service() {
         MediaButtonReceiver.handleIntent(mediaSession, toggleIntent)
 
         val context = this
+        mediaStyle = androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle().also {
+            it.setMediaSession(mediaSession.sessionToken)
+            it.setShowActionsInCompactView(0, 1) // index 0 = show actions 0 and 1 (show action #0 (play/pause))
+        }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 //prev
@@ -268,14 +262,18 @@ class NotificationService : Service() {
                         )
                     }
                 }
-                .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(0, 1, 2)
-                        .setShowCancelButton(true)
-                        .setMediaSession(mediaSession.sessionToken)
-                )
+                .setStyle(mediaStyle)
+//                .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
+//                        .setShowActionsInCompactView(0, 1, 2)
+//                        .setShowCancelButton(true)
+//                        .setMediaSession(mediaSession.sessionToken)
+//                )
                 .setSmallIcon(getSmallIcon(context))
+                .setColorized(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setVibrate(longArrayOf(0L))
+                .setProgress(0,0,true)
+//                .setColor(0xFF8363FF.toInt())
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentTitle(action.audioMetas.title)
                 .setContentText(action.audioMetas.artist)
@@ -342,3 +340,4 @@ class NotificationService : Service() {
     }
 
 }
+
