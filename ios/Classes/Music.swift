@@ -565,10 +565,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             self.setBuffering(true)
             self.isLiveStream = false
-            var isObservingCurrentItem = false
             
+            var isObservingCurrentItem = false
+
             if isObservingCurrentItem {	
-                observerStatus.removeAll()	
+               observerStatus.removeAll()	
             }
 
             observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
@@ -611,15 +612,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     
                     self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
-                     if(isObservingCurrentItem ) {	                    self?.addPlayerStatusListeners(item: (self?.player)!);
-                        if((self?.observerStatus.count ?? -1) > 0){	
-                            self?.observerStatus.removeAll()	
-                        }	
 
+                    if(isObservingCurrentItem ) {	                    
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                    if((self?.observerStatus.count ?? -1) > 0){	
+                    self?.observerStatus.removeAll()	
+                    }	
                     }	
 
                     isObservingCurrentItem = false
-                    
                     result(nil)
                 case .failed:
                     var error = item.error
@@ -825,7 +826,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.updateNotifStatus(playing: self.playing, stopped: true, rate: self.player?.rate)
         
         self.player?.seek(to: CMTime.zero)
-        self.player = nil   
         self.playing = false
         self.currentTimeTimer?.invalidate()
         #if os(iOS)
@@ -839,11 +839,16 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         #if os(iOS)
         self.nowPlayingInfo.removeAll()
         #endif
+        self.player = nil
     }
     
     func play(){
-        self.player?.play()
-        self.player?.rate = self.rate
+        if #available(iOS 10.0, *) {
+            self.player?.playImmediately(atRate: self.rate)
+        } else {
+            self.player?.play()
+            self.player?.rate = self.rate
+        }
         self.currentTimeTimer = Timer.scheduledTimer(timeInterval: 0.3, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
         self.currentTimeTimer?.fire()
 //        self.playing = true
