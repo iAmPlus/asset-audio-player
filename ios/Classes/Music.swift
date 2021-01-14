@@ -564,6 +564,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             notifCenter.addObserver(self, selector: #selector(self.failedToPlayToEndTime), name: NSNotification.Name.AVPlayerItemFailedToPlayToEndTime, object: item)
             
             self.setBuffering(true)
+            
             self.isLiveStream = false
             
             var isObservingCurrentItem = false
