@@ -20,8 +20,9 @@ class _PositionSeekWidgetState extends State<PositionSeekWidget> {
   Duration _visibleValue;
   bool listenOnlyUserInterraction = false;
   double get percent => widget.duration.inMilliseconds == 0
-      ? 0
-      : _visibleValue.inMilliseconds / widget.duration.inMilliseconds;
+      ? 0.0
+      : (_visibleValue.inMilliseconds / widget.duration.inMilliseconds)
+          .toDouble();
 
   @override
   void initState() {
@@ -48,32 +49,32 @@ class _PositionSeekWidgetState extends State<PositionSeekWidget> {
             width: 40,
             child: Text(durationToString(widget.currentPosition)),
           ),
-          Expanded(
-            child: NeumorphicSlider(
-              min: 0,
-              max: widget.duration.inMilliseconds.toDouble(),
-              value: percent * widget.duration.inMilliseconds.toDouble(),
-              style:
-                  SliderStyle(variant: Colors.grey, accent: Colors.grey[500]),
-              onChangeEnd: (newValue) {
-                setState(() {
-                  listenOnlyUserInterraction = false;
-                  widget.seekTo(_visibleValue);
-                });
-              },
-              onChangeStart: (_) {
-                setState(() {
-                  listenOnlyUserInterraction = true;
-                });
-              },
-              onChanged: (newValue) {
-                setState(() {
-                  final to = Duration(milliseconds: newValue.floor());
-                  _visibleValue = to;
-                });
-              },
-            ),
-          ),
+          // Expanded(
+          //   child: NeumorphicSlider(
+          //     min: 0.0,
+          //     max: widget.duration.inMilliseconds.toDouble(),
+          //     value: percent * widget.duration.inMilliseconds.toDouble(),
+          //     style:
+          //         SliderStyle(variant: Colors.grey, accent: Colors.grey[500]),
+          //     onChangeEnd: (newValue) {
+          //       setState(() {
+          //         listenOnlyUserInterraction = false;
+          //         widget.seekTo(_visibleValue);
+          //       });
+          //     },
+          //     onChangeStart: (_) {
+          //       setState(() {
+          //         listenOnlyUserInterraction = true;
+          //       });
+          //     },
+          //     onChanged: (newValue) {
+          //       setState(() {
+          //         final to = Duration(milliseconds: newValue.floor());
+          //         _visibleValue = to;
+          //       });
+          //     },
+          //   ),
+          // ),
           SizedBox(
             width: 40,
             child: Text(durationToString(widget.duration)),

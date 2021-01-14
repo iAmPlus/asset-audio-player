@@ -36,17 +36,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final audios = <Audio>[
-    //Audio.network(
-    //  "https://d14nt81hc5bide.cloudfront.net/U7ZRzzHfk8pvmW28sziKKPzK",
-    //  metas: Metas(
-    //    id: "Invalid",
-    //    title: "Invalid",
-    //    artist: "Florent Champigny",
-    //    album: "OnlineAlbum",
-    //    image: MetasImage.network(
-    //        "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
-    //  ),
-    //),
     Audio.network(
       "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/springtide/Sounds_strange_weird_but_unmistakably_romantic_Vol1/springtide_-_03_-_We_Are_Heading_to_the_East.mp3",
       metas: Metas(
@@ -59,30 +48,8 @@ class _MyAppState extends State<MyApp> {
             "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
       ),
     ),
-    Audio(
-      "assets/audios/rock.mp3",
-      //playSpeed: 2.0,
-      metas: Metas(
-        id: "Rock",
-        title: "Rock",
-        artist: "Florent Champigny",
-        album: "RockAlbum",
-        image: MetasImage.network(
-            "https://static.radio.fr/images/broadcasts/cb/ef/2075/c300.png"),
-      ),
-    ),
-    Audio(
-      "assets/audios/2 country.mp3",
-      metas: Metas(
-        id: "Country",
-        title: "Country",
-        artist: "Florent Champigny",
-        album: "CountryAlbum",
-        image: MetasImage.asset("assets/images/country.jpg"),
-      ),
-    ),
-    Audio(
-      "assets/audios/electronic.mp3",
+    Audio.network(
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       metas: Metas(
         id: "Electronics",
         title: "Electronic",
@@ -92,8 +59,8 @@ class _MyAppState extends State<MyApp> {
             "https://i.ytimg.com/vi/nVZNy0ybegI/maxresdefault.jpg"),
       ),
     ),
-    Audio(
-      "assets/audios/hiphop.mp3",
+    Audio.network(
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
       metas: Metas(
         id: "Hiphop",
         title: "HipHop",
@@ -103,8 +70,8 @@ class _MyAppState extends State<MyApp> {
             "https://beyoudancestudio.ch/wp-content/uploads/2019/01/apprendre-danser.hiphop-1.jpg"),
       ),
     ),
-    Audio(
-      "assets/audios/pop.mp3",
+    Audio.network(
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
       metas: Metas(
         id: "Pop",
         title: "Pop",
@@ -112,17 +79,6 @@ class _MyAppState extends State<MyApp> {
         album: "PopAlbum",
         image: MetasImage.network(
             "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
-      ),
-    ),
-    Audio(
-      "assets/audios/instrumental.mp3",
-      metas: Metas(
-        id: "Instrumental",
-        title: "Instrumental",
-        artist: "Florent Champigny",
-        album: "InstrumentalAlbum",
-        image: MetasImage.network(
-            "https://i.ytimg.com/vi/zv_0dSfknBc/maxresdefault.jpg"),
       ),
     ),
   ];
