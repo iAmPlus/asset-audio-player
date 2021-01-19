@@ -37,7 +37,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final audios = <Audio>[
     Audio.network(
-      "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/springtide/Sounds_strange_weird_but_unmistakably_romantic_Vol1/springtide_-_03_-_We_Are_Heading_to_the_East.mp3",
+      "https://anghamipreview.akamaized.net/30sec/30S_27_8906035373770_01_001_ISRC_INT202002543_MD5_f4b25751d23e4927426a7b473a7c1877.m4a",
       metas: Metas(
         id: "Online",
         title: "Online",

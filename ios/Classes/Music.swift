@@ -580,6 +580,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     debugPrint("status: unknown")
                 case .readyToPlay:
                     debugPrint("status: ready to play")
+
                     
                     if(audioType == "liveStream"){
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": 0.0])
@@ -596,7 +597,20 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
                         #endif
                     }
+                    if self?.getMillisecondsFromCMTime(item.duration) == 0 {
+                        var error = item.error
+                        debugPrint("playback failed")
                     
+                        self?.stop()
+                    
+                        return result(FlutterError(
+                                        code: "PLAY_ERROR",
+                                        message: "Cannot play "+assetPath,
+                                        details: item.error?.localizedDescription)
+                        )
+                    }
+                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     if(autoStart == true){
                         self?.play()
                     }
@@ -611,8 +625,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self?._playingPath = assetPath
                     //self?.setBuffering(false)
                     
-                    self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                    
 
                     if(isObservingCurrentItem ) {	                    
                     self?.addPlayerStatusListeners(item: (self?.player)!);

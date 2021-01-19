@@ -24,9 +24,7 @@ dependencies:
 
   flutter_audio_query: ^0.3.4+1
   assets_audio_player:
-    git:
-      url: https://github.com/iAmPlus/asset-audio-player.git
-      ref: b4d58b629fbb1027df85f2f6cba7bc0fc47c2a4e
+    path: ../
 
 dev_dependencies:
   flutter_test:
