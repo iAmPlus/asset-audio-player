@@ -625,7 +625,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 case .failed:
                     var error = item.error
                     debugPrint("playback failed")
-                    self.setBuffering(false)
+                    self!.setBuffering(false)
                     self?.stop()
                     result(FlutterError(
                         code: "PLAY_ERROR",
