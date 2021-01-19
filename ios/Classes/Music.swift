@@ -597,7 +597,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
                         #endif
                     }
-                    if self?.getMillisecondsFromCMTime(item.duration) == 0 {
+                    let audioDurationMs = self?.getMillisecondsFromCMTime(item.duration) ?? 0
+                    if audioDurationMs == 0 {
                         var error = item.error
                         debugPrint("playback failed")
                     
