@@ -1036,7 +1036,7 @@ class AssetsAudioPlayer {
     NotificationSettings notificationSettings,
   }) async {
     if (!(cancelableOperation?.isCompleted ?? true)) {
-      cancelableOperation.cancel();
+      cancelableOperation?.cancel();
       print('assets_audio_player : canceled');
     }
     _isLoading.add(true);
@@ -1058,11 +1058,12 @@ class AssetsAudioPlayer {
             nextIndex: _playlist.nextIndex(),
             previousIndex: _playlist.previousIndex()),
       );
+      print('assets_audio_player : ${current.audio.audio.metas.title}');
       _current.add(current);
 
       cancelableOperation =
-          await CancelableOperation.fromFuture(onPlay(audioInput))
-              .then((value) async {
+          await CancelableOperation.fromFuture(onPlay(audioInput)).then(
+              (value) async {
         audioInput = value;
         Audio audio = await _handlePlatformAsset(audioInput);
         _showNotification = showNotification;
@@ -1133,6 +1134,20 @@ class AssetsAudioPlayer {
           print('assets_audio_player : $e');
           return Future.error(e);
         }
+      }, onError: (e, st) async {
+        _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
+        _current.add(null);
+        _isBuffering.add(false);
+        _isLoading.add(false);
+        _currentPosition.add(Duration.zero);
+        try {
+          _playlist.returnToFirst();
+          await pause();
+        } catch (t) {
+          print('assets_audio_player : $t');
+        }
+        print('assets_audio_player : $e');
+        return Future.error(e);
       });
     }
   }
