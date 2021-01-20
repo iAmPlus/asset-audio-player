@@ -1120,16 +1120,9 @@ class AssetsAudioPlayer {
           _playlistFinished.value = false;
         } catch (e) {
           _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
-          _current.add(null);
           _isBuffering.add(false);
           _isLoading.add(false);
           _currentPosition.add(Duration.zero);
-          try {
-            _playlist.returnToFirst();
-            await pause();
-          } catch (t) {
-            print('assets_audio_player : $t');
-          }
           print('assets_audio_player : $e');
           return Future.error(e);
         }
