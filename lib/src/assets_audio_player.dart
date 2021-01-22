@@ -774,7 +774,6 @@ class AssetsAudioPlayer {
 
   Future<void> _openPlaylistCurrent(
       {bool autoStart = true, Duration seek}) async {
-    print('assets_audio_player : _isBuffering ==> ${_isBuffering.value}');
     if (_playlist != null && _isBuffering.value == false) {
       return _open(
         _playlist.currentAudio(),
