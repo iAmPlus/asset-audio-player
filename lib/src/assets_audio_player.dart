@@ -1068,78 +1068,74 @@ class AssetsAudioPlayer {
 
       cancelableOperation =
           await CancelableOperation.fromFuture(onPlay(audioInput)).then(
-              (value) async {
-        audioInput = value;
-        Audio audio = await _handlePlatformAsset(audioInput);
-        _showNotification = showNotification;
-        audio = await _downloadOrFetchFromCacheIfNecessary(audio);
+        (value) async {
+          try {
+            _isBuffering.add(true);
+            audioInput = value;
+            Audio audio = await _handlePlatformAsset(audioInput);
+            _showNotification = showNotification;
+            audio = await _downloadOrFetchFromCacheIfNecessary(audio);
 
-        audio.setCurrentlyOpenedIn(_playerEditor);
-        _isBuffering.add(true);
+            audio.setCurrentlyOpenedIn(_playerEditor);
 
-        try {
-          Map<String, dynamic> params = {
-            "id": this.id,
-            "audioType": audioTypeDescription(audio.audioType),
-            "path": audio.path,
-            "autoStart": autoStart,
-            "respectSilentMode": respectSilentMode,
-            "headPhoneStrategy": describeHeadPhoneStrategy(headPhoneStrategy),
-            "audioFocusStrategy": describeAudioFocusStrategy(focusStrategy),
-            "displayNotification": showNotification,
-            "volume": forcedVolume ?? this.volume.value ?? defaultVolume,
-            "playSpeed": playSpeed ??
-                audio.playSpeed ??
-                this.playSpeed.value ??
-                defaultPlaySpeed,
-          };
-          if (seek != null) {
-            params["seek"] = seek.inMilliseconds.round();
+            Map<String, dynamic> params = {
+              "id": this.id,
+              "audioType": audioTypeDescription(audio.audioType),
+              "path": audio.path,
+              "autoStart": autoStart,
+              "respectSilentMode": respectSilentMode,
+              "headPhoneStrategy": describeHeadPhoneStrategy(headPhoneStrategy),
+              "audioFocusStrategy": describeAudioFocusStrategy(focusStrategy),
+              "displayNotification": showNotification,
+              "volume": forcedVolume ?? this.volume.value ?? defaultVolume,
+              "playSpeed": playSpeed ??
+                  audio.playSpeed ??
+                  this.playSpeed.value ??
+                  defaultPlaySpeed,
+            };
+            if (seek != null) {
+              params["seek"] = seek.inMilliseconds.round();
+            }
+            if (audio.package != null) {
+              params["package"] = audio.package;
+            }
+            if (audio.audioType == AudioType.file ||
+                audio.audioType == AudioType.liveStream) {
+              params["networkHeaders"] =
+                  audio.networkHeaders ?? networkSettings.defaultHeaders;
+            }
+
+            //region notifs
+            final notifSettings =
+                notificationSettings ?? NotificationSettings();
+            writeNotificationSettingsInto(params, notifSettings);
+            //endregion
+
+            writeAudioMetasInto(params, audio.metas);
+            _lastOpenedAssetsAudio = audioInput;
+            /*final result = */
+
+            await _sendChannel.invokeMethod('open', params);
+
+            if (onChange != null) {
+              await onChange();
+            }
+
+            await setLoopMode(loopMode);
+
+            _stopped = false;
+            _playlistFinished.value = false;
+          } catch (e) {
+            _lastOpenedAssetsAudio =
+                currentAudio; //revert to the previous audio
+            _isBuffering.add(false);
+            _isLoading.add(false);
+            _currentPosition.add(Duration.zero);
+            print('assets_audio_player : $e');
+            return Future.error(e);
           }
-          if (audio.package != null) {
-            params["package"] = audio.package;
-          }
-          if (audio.audioType == AudioType.file ||
-              audio.audioType == AudioType.liveStream) {
-            params["networkHeaders"] =
-                audio.networkHeaders ?? networkSettings.defaultHeaders;
-          }
-
-          //region notifs
-          final notifSettings = notificationSettings ?? NotificationSettings();
-          writeNotificationSettingsInto(params, notifSettings);
-          //endregion
-
-          writeAudioMetasInto(params, audio.metas);
-          _lastOpenedAssetsAudio = audioInput;
-          /*final result = */
-
-          await _sendChannel.invokeMethod('open', params);
-
-          if (onChange != null) {
-            await onChange();
-          }
-
-          await setLoopMode(loopMode);
-
-          _stopped = false;
-          _playlistFinished.value = false;
-        } catch (e) {
-          _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
-          _isBuffering.add(false);
-          _isLoading.add(false);
-          _currentPosition.add(Duration.zero);
-          print('assets_audio_player : $e');
-          return Future.error(e);
-        }
-      }, onError: (st, error) {
-        _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
-        _isBuffering.add(false);
-        _isLoading.add(false);
-        _currentPosition.add(Duration.zero);
-        print('assets_audio_player : $e');
-        return Future.error(e);
-      });
+        },
+      );
     }
   }
 
