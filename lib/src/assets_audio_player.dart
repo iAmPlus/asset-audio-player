@@ -606,12 +606,7 @@ class AssetsAudioPlayer {
             _forwardRewindSpeed.value = newValue;
           }
           break;
-        case 'PLAY_ERROR':
-          print('sahhar youcef');
-          break;
         default:
-          _isBuffering.add(false);
-          print('sahhar youcef');
           print(
               'assets_audio_player : [ERROR] Channel method ${call.method} not implemented.');
       }
