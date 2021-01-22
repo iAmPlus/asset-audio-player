@@ -1061,8 +1061,8 @@ class AssetsAudioPlayer {
       _current.add(current);
 
       cancelableOperation =
-          await CancelableOperation.fromFuture(onPlay(audioInput))
-              .then((value) async {
+          await CancelableOperation.fromFuture(onPlay(audioInput)).then(
+              (value) async {
         audioInput = value;
         Audio audio = await _handlePlatformAsset(audioInput);
         _showNotification = showNotification;
@@ -1126,6 +1126,13 @@ class AssetsAudioPlayer {
           print('assets_audio_player : $e');
           return Future.error(e);
         }
+      }, onError: (st, error) {
+        _lastOpenedAssetsAudio = currentAudio; //revert to the previous audio
+        _isBuffering.add(false);
+        _isLoading.add(false);
+        _currentPosition.add(Duration.zero);
+        print('assets_audio_player : $e');
+        return Future.error(e);
       });
     }
   }
