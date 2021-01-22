@@ -672,7 +672,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.currentTimeMs = 0.0
             self.playing = false
         } catch let error {
-            self.setBuffering(false)
+//            self.setBuffering(false)
             result(FlutterError(
                 code: "PLAY_ERROR",
                 message: "Cannot play "+assetPath,

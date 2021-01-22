@@ -71,7 +71,29 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "",
+      "https://logger-dev.theori.iamplus.services/?user_id=Sahhar&query=&intent=&start=&end=",
+      metas: Metas(
+        id: "Pop",
+        title: "Pop",
+        artist: "Florent Champigny",
+        album: "PopAlbum",
+        image: MetasImage.network(
+            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
+      ),
+    ),
+    Audio.network(
+      "https:\/\/anghamiaudio.akamaized.net\/mp43\/24\/USRC11601486_A10328E0009826304X_MD5_f0b89c7243996ea06aaea2d6958d777f.m4a?anghakamitoken=st=1611317242~exp=1611317722~acl=*~hmac=5d589c2ec1e49c25483ec8a36e325685ad53b79c97319e442363c1bd88fb963b",
+      metas: Metas(
+        id: "Pop",
+        title: "Pop",
+        artist: "Florent Champigny",
+        album: "PopAlbum",
+        image: MetasImage.network(
+            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
+      ),
+    ),
+    Audio.network(
+      "    https://anghamiaudio.akamaized.net/mp43/24/USRC11601486_A10328E0009826304X_MD5_f0b89c7243996ea06aaea2d6958d777f.m4a",
       metas: Metas(
         id: "Pop",
         title: "Pop",
