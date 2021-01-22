@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      null,
       metas: Metas(
         id: "Electronics",
         title: "Electronic",
@@ -71,7 +71,7 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+      "",
       metas: Metas(
         id: "Pop",
         title: "Pop",
