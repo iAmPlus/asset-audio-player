@@ -514,6 +514,7 @@ class AssetsAudioPlayer {
     _recieveChannel = MethodChannel('assets_audio_player/$id');
     _recieveChannel.setMethodCallHandler((MethodCall call) async {
       //print("received call ${call.method} with arguments ${call.arguments}");
+      print('sahhar youcef : ${call.method}');
       switch (call.method) {
         case 'log':
           print("log: " + call.arguments);
@@ -605,7 +606,11 @@ class AssetsAudioPlayer {
             _forwardRewindSpeed.value = newValue;
           }
           break;
+        case 'PLAY_ERROR':
+          print('sahhar youcef');
+          break;
         default:
+          print('sahhar youcef');
           print(
               'assets_audio_player : [ERROR] Channel method ${call.method} not implemented.');
       }
