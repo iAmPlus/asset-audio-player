@@ -498,8 +498,12 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.stop()
         guard let url = self.getUrlByType(path: assetPath, audioType: audioType, assetPackage: assetPackage) else {
             log("resource not found \(assetPath)")
-            self.setBuffering(false)
-            result("")
+//            self.setBuffering(false)
+            result(FlutterError(
+                    code: "PLAY_ERROR",
+                    message: "Cannot play "+assetPath,
+                    details: "resource not found \(assetPath)")
+                )
             return
         }
         
