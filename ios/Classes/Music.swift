@@ -498,6 +498,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.stop()
         guard let url = self.getUrlByType(path: assetPath, audioType: audioType, assetPackage: assetPackage) else {
             log("resource not found \(assetPath)")
+            self.setBuffering(false)
             result("")
             return
         }
