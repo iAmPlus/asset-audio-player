@@ -103,6 +103,17 @@ class _MyAppState extends State<MyApp> {
             "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
       ),
     ),
+    Audio.network(
+      "http://mirrors.standaloneinstaller.com/audio-sample/wma/out.aac",
+      metas: Metas(
+        id: "Pop",
+        title: "Pop",
+        artist: "Florent Champigny",
+        album: "PopAlbum",
+        image: MetasImage.network(
+            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
+      ),
+    ),
   ];
 
   //final AssetsAudioPlayer _assetsAudioPlayer = AssetsAudioPlayer();
