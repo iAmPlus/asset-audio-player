@@ -774,20 +774,38 @@ class AssetsAudioPlayer {
 
   Future<void> _openPlaylistCurrent(
       {bool autoStart = true, Duration seek}) async {
-    if (_playlist != null) {
-      return _open(
-        _playlist.currentAudio(),
-        forcedVolume: _playlist.volume,
-        respectSilentMode: _playlist.respectSilentMode,
-        showNotification: _playlist.showNotification,
-        playSpeed: _playlist.playSpeed,
-        notificationSettings: _playlist.notificationSettings,
-        autoStart: autoStart,
-        loopMode: _playlist.loopMode,
-        headPhoneStrategy: _playlist.headPhoneStrategy,
-        audioFocusStrategy: _playlist.audioFocusStrategy,
-        seek: seek,
-      );
+    if (Platform.isIOS) {
+      if (_playlist != null) {
+        return _open(
+          _playlist.currentAudio(),
+          forcedVolume: _playlist.volume,
+          respectSilentMode: _playlist.respectSilentMode,
+          showNotification: _playlist.showNotification,
+          playSpeed: _playlist.playSpeed,
+          notificationSettings: _playlist.notificationSettings,
+          autoStart: autoStart,
+          loopMode: _playlist.loopMode,
+          headPhoneStrategy: _playlist.headPhoneStrategy,
+          audioFocusStrategy: _playlist.audioFocusStrategy,
+          seek: seek,
+        );
+      }
+    } else if (Platform.isAndroid) {
+      if (_playlist != null && !isBuffering.value) {
+        return _open(
+          _playlist.currentAudio(),
+          forcedVolume: _playlist.volume,
+          respectSilentMode: _playlist.respectSilentMode,
+          showNotification: _playlist.showNotification,
+          playSpeed: _playlist.playSpeed,
+          notificationSettings: _playlist.notificationSettings,
+          autoStart: autoStart,
+          loopMode: _playlist.loopMode,
+          headPhoneStrategy: _playlist.headPhoneStrategy,
+          audioFocusStrategy: _playlist.audioFocusStrategy,
+          seek: seek,
+        );
+      }
     }
   }
 
