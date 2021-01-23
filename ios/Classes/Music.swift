@@ -604,7 +604,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     if audioDurationMs == 0 {
                         debugPrint("playback failed")
                         
-                        self?.stop()
                         self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                         return
                     }
@@ -643,7 +642,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 case .failed:
                     debugPrint("playback failed")
                     self!.setBuffering(false)
-                    self?.stop()
                     self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                     return
                 @unknown default:
