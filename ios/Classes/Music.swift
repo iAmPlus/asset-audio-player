@@ -603,12 +603,17 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     let audioDurationMs = self?.getMillisecondsFromCMTime(item.duration) ?? 0
                     if audioDurationMs == 0 {
                         debugPrint("playback failed")
-                        self?.setBuffering(false)
+                        
                         self?.stop()
                         self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                         return
                     }
-//                    self?.addPostPlayingBufferListeners(item: item)
+                    if #available(iOS 10.0, *) {
+                        item.preferredForwardBufferDuration = TimeInterval(10)
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                    self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
                     if(autoStart == true){
                         self?.play()
@@ -622,6 +627,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
+                    //self?.setBuffering(false)
                     
                     
 
@@ -630,9 +636,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     if((self?.observerStatus.count ?? -1) > 0){	
                     self?.observerStatus.removeAll()	
                     }	
-                    }
-                    self?.setBuffering(false)
-
+                    }	
 
                     isObservingCurrentItem = false
                     result(nil)
@@ -657,8 +661,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.currentTimeMs = 0.0
             self.playing = false
         } catch let error {
-            self.stop()
-            self.setBuffering(false)
             self.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "Cannot play \(assetPath)\nerror : \(error.localizedDescription)"))
             return
         }
@@ -681,17 +683,16 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         if let error : NSError = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? NSError {
             //Network / Timeout errors    HTTP 4xx errors, HTTP 5xx errors, TCP/IP, DNS errors    AVErrorContentIsUnavailable, AVErrorNoLongerPlayable
             if(error.code == -11863 /*AVErrorContentIsUnavailable*/ || error.code == -11867 /* AVErrorNoLongerPlayable*/ ){
-                self.setBuffering(false)
                 self.onError(NetworkError(message: "avplayer http error"));
             }
             else {
-                self.setBuffering(false)
                 self.onError(PlayerError(message: "avplayer error"));
             }
         }
     }
     
     private func addPostPlayingBufferListeners(item : SlowMoPlayerItem){
+       
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
             if(value.isPlaybackBufferEmpty){
