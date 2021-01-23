@@ -128,7 +128,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         var url : URL
         
         if(audioType == "network" || audioType == "liveStream"){
-            if let u = URL(string: path) {
+            if path.isEmpty {
+                return nil
+            }
+            else if let u = URL(string: path) {
                 return u
             } else {
                 print("Couldn't parse myURL = \(path)")
@@ -497,8 +500,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     ){
         self.stop()
         guard let url = self.getUrlByType(path: assetPath, audioType: audioType, assetPackage: assetPackage) else {
-            log("resource not found \(assetPath)")
-            result("")
+            self.setBuffering(false)
+            self.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "resource not found \(assetPath)"))
             return
         }
         
@@ -515,11 +518,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             /* set session category and mode with options */
             if #available(iOS 10.0, *) {
-                //try AVAudioSession.sharedInstance().setCategory(category, mode: mode, options: [.mixWithOthers])
                 try AVAudioSession.sharedInstance().setCategory(category, mode: .default, options: [])
                 try AVAudioSession.sharedInstance().setActive(true)
             } else {
-                
                 try AVAudioSession.sharedInstance().setCategory(category)
                 try AVAudioSession.sharedInstance().setActive(true)
                 
@@ -536,6 +537,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             } else {
                 item = SlowMoPlayerItem(url: url)
             }
+
+
             self.player = AVQueuePlayer(playerItem: item)
             
             
@@ -564,6 +567,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             notifCenter.addObserver(self, selector: #selector(self.failedToPlayToEndTime), name: NSNotification.Name.AVPlayerItemFailedToPlayToEndTime, object: item)
             
             self.setBuffering(true)
+            
             self.isLiveStream = false
             
             var isObservingCurrentItem = false
@@ -579,6 +583,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     debugPrint("status: unknown")
                 case .readyToPlay:
                     debugPrint("status: ready to play")
+
                     
                     if(audioType == "liveStream"){
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": 0.0])
@@ -595,7 +600,21 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.setupMediaPlayerNotificationView(notificationSettings: notificationSettings, audioMetas: audioMetas, isPlaying: false)
                         #endif
                     }
-                    
+                    let audioDurationMs = self?.getMillisecondsFromCMTime(item.duration) ?? 0
+                    if audioDurationMs == 0 {
+                        debugPrint("playback failed")
+                        
+                        self?.stop()
+                        self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
+                        return
+                    }
+//                    if #available(iOS 10.0, *) {
+//                        item.preferredForwardBufferDuration = TimeInterval(10)
+//                    } else {
+//                        // Fallback on earlier versions
+//                    }
+//                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     if(autoStart == true){
                         self?.play()
                     }
@@ -608,10 +627,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-                    //self?.setBuffering(false)
+                    self?.setBuffering(false)
                     
-                    self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                    
 
                     if(isObservingCurrentItem ) {	                    
                     self?.addPlayerStatusListeners(item: (self?.player)!);
@@ -623,15 +641,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     isObservingCurrentItem = false
                     result(nil)
                 case .failed:
-                    var error = item.error
                     debugPrint("playback failed")
                     self!.setBuffering(false)
                     self?.stop()
-                    result(FlutterError(
-                        code: "PLAY_ERROR",
-                        message: "Cannot play "+assetPath,
-                        details: item.error?.localizedDescription)
-                    )
+                    self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
+                    return
                 @unknown default:
                     fatalError()
                 }
@@ -647,13 +661,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.currentTimeMs = 0.0
             self.playing = false
         } catch let error {
-            result(FlutterError(
-                code: "PLAY_ERROR",
-                message: "Cannot play "+assetPath,
-                details: error.localizedDescription)
-            )
-            log(error.localizedDescription)
-            print(error.localizedDescription)
+            self.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "Cannot play \(assetPath)\nerror : \(error.localizedDescription)"))
+            return
         }
     }
     
@@ -683,6 +692,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     }
     
     private func addPostPlayingBufferListeners(item : SlowMoPlayerItem){
+       
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
             if(value.isPlaybackBufferEmpty){
@@ -785,6 +795,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     }
     
     private func onError(_ error: AssetAudioPlayerError){
+        self.setBuffering(false)
         self.channel.invokeMethod(Music.METHOD_ERROR, arguments: [
             "type" : error.type,
             "message" : error.message,
