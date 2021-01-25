@@ -38,6 +38,11 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
         SmoothStreaming
     }
 
+    override fun stop(){
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
     override suspend fun open(configuration: PlayerFinderConfiguration) : PlayerFinder.PlayerWithDuration {
         mediaPlayer?.stop()
         mediaPlayer?.release()
@@ -174,7 +179,7 @@ class PlayerImplemExoPlayer(
                 val factory = DataSource.Factory { assetDataSource }
                 return ProgressiveMediaSource
                         .Factory(factory, DefaultExtractorsFactory())
-                        .createMediaSource(assetDataSource.uri)
+                        .createMediaSource(MediaItem.fromUri(assetDataSource.uri!!))
             }
         } catch (e: Exception) {
             throw e

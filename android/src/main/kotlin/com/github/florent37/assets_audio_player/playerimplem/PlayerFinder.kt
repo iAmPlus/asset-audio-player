@@ -7,6 +7,8 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 interface PlayerImplemTester {
     @Throws(Exception::class)
     suspend fun open(configuration: PlayerFinderConfiguration): PlayerFinder.PlayerWithDuration
+
+    fun stop()
 }
 
 class PlayerFinderConfiguration(
@@ -32,6 +34,8 @@ object PlayerFinder {
     private val DASHExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.DASH)
     private val SmoothStreamingExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.SmoothStreaming)
     private val MediaPlayerTester = PlayerImplemTesterMediaPlayer()
+
+    private var implemTester:PlayerImplemTester? = null
 
     private val playerImpls = listOf<PlayerImplemTester>(
             DefaultExoPlayerTester,
@@ -69,12 +73,13 @@ object PlayerFinder {
         }
         try {
             //try the first
-            val implemTester = remainingImpls.first()
-            val playerWithDuration = implemTester.open(
+            implemTester?.stop()
+             implemTester = remainingImpls.first()
+            val playerWithDuration = implemTester?.open(
                     configuration = configuration
             )
             //if we're here : no exception, we can return it
-            return playerWithDuration
+            return playerWithDuration!!
         } catch (unrachable : AssetAudioPlayerThrowable.UnreachableException) {
             //not usefull to test all players if the first is UnreachableException
             throw NoPlayerFoundException(why= unrachable)
