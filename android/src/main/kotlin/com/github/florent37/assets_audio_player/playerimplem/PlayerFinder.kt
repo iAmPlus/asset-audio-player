@@ -59,6 +59,8 @@ object PlayerFinder {
         add(0, element) //move to first
     }
 
+    var isOpening:Boolean = false
+
     @Throws(NoPlayerFoundException::class)
     private suspend fun _findWorkingPlayer(
             remainingImpls: List<PlayerImplemTester>,

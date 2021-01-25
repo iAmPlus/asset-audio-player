@@ -612,7 +612,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
 //                    } else {
 //                        // Fallback on earlier versions
 //                    }
-//                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
                     if(autoStart == true){
                         self?.play()
