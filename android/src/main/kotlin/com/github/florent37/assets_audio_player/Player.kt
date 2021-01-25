@@ -180,7 +180,6 @@ class Player(
       
         GlobalScope.launch(Dispatchers.Main) {
             try {
-                PlayerFinder.isOpening = true
                 val playerWithDuration = PlayerFinder.findWorkingPlayer(
                         PlayerFinderConfiguration(
                         assetAudioPath = assetAudioPath,
@@ -198,8 +197,6 @@ class Player(
                         onError= onError
                         )
                 )
-                PlayerFinder.isOpening = false
-
 
                 val durationMs = playerWithDuration.duration
                 mediaPlayer = playerWithDuration.player

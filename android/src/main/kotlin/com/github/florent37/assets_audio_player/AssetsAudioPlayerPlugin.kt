@@ -497,10 +497,6 @@ class AssetsAudioPlayer(
 
                     val audioFocusStrategy = AudioFocusStrategy.from(args["audioFocusStrategy"] as? Map<*, *>)
                     val headsetStrategy = HeadsetStrategy.from(args["headPhoneStrategy"] as? String)
-                    if (PlayerFinder.isOpening){
-                        Log.e("assets audio player" , "player is already opening")
-                        return
-                    }
                     getOrCreatePlayer(id).open(
                             assetAudioPath = path,
                             assetAudioPackage = assetPackage,
