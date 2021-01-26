@@ -612,7 +612,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
 //                        // Fallback on earlier versions
 //                    }
                
-                    self?.addPlayerStatusListeners(item: (self?.player)!);  
                     
                     if(autoStart == true){
                         self?.play()
@@ -626,13 +625,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-
-                    
                     self?.setBuffering(false)
-                  
                     //self?.addPostPlayingBufferListeners(item: item)
      
-                    
+                    self?.addPlayerStatusListeners(item: (self?.player)!);  
                     if(isObservingCurrentItem) {
                                             if((self?.observerStatus.count ?? -1) > 0){
                                                 self?.observerStatus.removeAll()
