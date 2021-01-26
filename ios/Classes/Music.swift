@@ -743,7 +743,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         
         // Switch over the interruption type.
         switch type {
-            
         case .began:
             self.pause();
             break
@@ -762,8 +761,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 // Interruption ended. Playback should resume.
             } else {
                 // // Interruption ended. Playback should not resume.
-                self.pause()
-                print("handleInterruption :- Pause")
+                //self.pause()
+                print("handleInterruption :- Interruption ended. Playback should not resume")
             }
             break
         default: ()
