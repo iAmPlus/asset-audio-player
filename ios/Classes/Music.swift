@@ -571,8 +571,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.setBuffering(true)
             
             self.isLiveStream = false
-            
-        
+            var isObservingCurrentItem = false
+            if isObservingCurrentItem {
+               observerStatus.removeAll()
+            }
 
             observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
                 
@@ -625,9 +627,17 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self?._playingPath = assetPath
                     //self?.setBuffering(false)
                   
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+               
                     self?.addPostPlayingBufferListeners(item: item)
                     
+                    if(isObservingCurrentItem) {
+                                            if((self?.observerStatus.count ?? -1) > 0){
+                                                self?.observerStatus.removeAll()
+                                            }
+                                        }
+
+                    isObservingCurrentItem = false
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     
                     result(nil)
                 case .failed:
@@ -639,6 +649,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     fatalError()
                 }
             }))
+            
+            isObservingCurrentItem = true
             
             if(self.player == nil){
                 //log("player is null")
@@ -744,9 +756,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         // Switch over the interruption type.
         switch type {
         case .began:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.pause();
-            }
+            self.pause();
             print("handleInterruption :- Interruption starts. Status pause")
             break
         case .ended:
@@ -764,7 +774,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 // Interruption ended. Playback should resume.
             } else {
                 // // Interruption ended. Playback should not resume.
-                //self.pause()
+                self.pause()
                 print("handleInterruption :- Interruption ended. Playback should not resume")
             }
             break
