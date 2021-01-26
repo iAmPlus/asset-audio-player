@@ -625,19 +625,18 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-                    //self?.setBuffering(false)
-                  
-               
-                    self?.addPostPlayingBufferListeners(item: item)
-                    
-                    if(isObservingCurrentItem) {
+
+                      if(isObservingCurrentItem) {
                                             if((self?.observerStatus.count ?? -1) > 0){
                                                 self?.observerStatus.removeAll()
                                             }
                                         }
 
                     isObservingCurrentItem = false
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                    //self?.setBuffering(false)
+                  
+                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);  
                     
                     result(nil)
                 case .failed:
