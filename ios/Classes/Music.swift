@@ -767,8 +767,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             if options.contains(.shouldResume) {
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
                    play()
-                } else if (self.audioFocusStrategy.resumeOthersPlayersAfterDone){
-                   play()
                 }
                 // Interruption ended. Playback should resume.
             } else {
