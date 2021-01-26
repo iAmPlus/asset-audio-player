@@ -745,6 +745,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         switch type {
         case .began:
             self.pause();
+            print("handleInterruption :- Interruption starts. Status pause")
             break
         case .ended:
             // An interruption ended. Resume playback, if appropriate.
