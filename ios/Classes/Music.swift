@@ -744,7 +744,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         // Switch over the interruption type.
         switch type {
         case .began:
-            self.pause();
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.pause();
+            }
             print("handleInterruption :- Interruption starts. Status pause")
             break
         case .ended:
