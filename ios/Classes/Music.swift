@@ -554,9 +554,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             #if os(iOS)
             //phone call
             notifCenter.addObserver(self,
-                                    selector: #selector(self.handleInterruption(_:)),
+                                    selector: #selector(handleInterruption),
                                     name: AVAudioSession.interruptionNotification,
-                                    object: AVAudioSession.sharedInstance()
+                                    object: nil
             )
             #endif
             
@@ -740,7 +740,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         return self.getMillisecondsFromCMTime(time) / 1000;
     }
     
-    @objc func handleInterruption(_ notification: Notification) {
+    @objc func handleInterruption(notification: Notification) {
         #if os(iOS)
         if(!self.audioFocusStrategy.request) {
             return
@@ -757,16 +757,18 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
         case .began:
             // An interruption began. Update the UI as needed.
+            debugPrint("Player paused")
             pause()
             
         case .ended:
             // An interruption ended. Resume playback, if appropriate.
-            
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
-                    self.invokeListenerPlayPause()
+                   play()
+                } else if (self.audioFocusStrategy.resumeOthersPlayersAfterDone){
+                   play()
                 }
                 // Interruption ended. Playback should resume.
             } else {
