@@ -606,12 +606,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                         return
                     }
-//                    if #available(iOS 10.0, *) {
-//                        item.preferredForwardBufferDuration = TimeInterval(10)
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-               
+
+                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     
                     if(autoStart == true){
                         self?.play()
@@ -626,9 +623,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     
                     self?._playingPath = assetPath
                     self?.setBuffering(false)
-                    //self?.addPostPlayingBufferListeners(item: item)
-     
-                    self?.addPlayerStatusListeners(item: (self?.player)!);  
                     if(isObservingCurrentItem) {
                                             if((self?.observerStatus.count ?? -1) > 0){
                                                 self?.observerStatus.removeAll()
