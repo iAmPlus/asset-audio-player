@@ -571,7 +571,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.setBuffering(true)
             
             self.isLiveStream = false
+            
             var isObservingCurrentItem = false
+
             if isObservingCurrentItem {
                observerStatus.removeAll()
             }
@@ -607,8 +609,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         return
                     }
 
-                    self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     
                     if(autoStart == true){
                         self?.play()
@@ -622,7 +622,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-                    self?.setBuffering(false)
+                    //self?.setBuffering(false)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     if(isObservingCurrentItem) {
                                             if((self?.observerStatus.count ?? -1) > 0){
                                                 self?.observerStatus.removeAll()
@@ -630,6 +631,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                                         }
 
                     isObservingCurrentItem = false
+
+                    self?.addPostPlayingBufferListeners(item: item)
+                
                     result(nil)
                 case .failed:
                     debugPrint("playback failed")
