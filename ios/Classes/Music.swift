@@ -568,7 +568,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             notifCenter.addObserver(self, selector: #selector(self.newErrorLogEntry), name: NSNotification.Name.AVPlayerItemNewErrorLogEntry, object: item)
             notifCenter.addObserver(self, selector: #selector(self.failedToPlayToEndTime), name: NSNotification.Name.AVPlayerItemFailedToPlayToEndTime, object: item)
             
-            self?.setBuffering(true)
+            self.setBuffering(true)
             
             self.isLiveStream = false
             
@@ -626,8 +626,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
                     
-                    self?.setBuffering(false)
-                    
+                    self.setBuffering(false)
+
                     if(isObservingCurrentItem) {
                               if((self?.observerStatus.count ?? -1) > 0){
                                                 self?.observerStatus.removeAll()
@@ -639,7 +639,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     result(nil)
                 case .failed:
                     debugPrint("playback failed")
-                    self?.setBuffering(false)
+                    self!.setBuffering(false)
                     self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                     return
                 @unknown default:
@@ -693,9 +693,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
             if(value.isPlaybackBufferEmpty){
-             self?.setBuffering(true)
+             self.setBuffering(true)
             }else{
-            self?.setBuffering(false)
+            self.setBuffering(false)
             }
         })
         
