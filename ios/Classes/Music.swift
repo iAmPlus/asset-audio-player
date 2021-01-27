@@ -572,11 +572,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             self.isLiveStream = false
             
-            var isObservingCurrentItem = false
+            // var isObservingCurrentItem = false
 
-            if isObservingCurrentItem {
-               observerStatus.removeAll()
-            }
+            // if isObservingCurrentItem {
+            //    observerStatus.removeAll()
+            // }
 
             observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
                 
@@ -626,14 +626,14 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
                     
-                    self!.setBuffering(false)
-                    if(isObservingCurrentItem) {
-                              if((self?.observerStatus.count ?? -1) > 0){
-                                                self?.observerStatus.removeAll()
-                            }
-                    }
+                    // self!.setBuffering(false)
+                    // if(isObservingCurrentItem) {
+                    //           if((self?.observerStatus.count ?? -1) > 0){
+                    //                             self?.observerStatus.removeAll()
+                    //         }
+                    // }
 
-                    isObservingCurrentItem = false                    
+                    // isObservingCurrentItem = false                    
               
                     result(nil)
                 case .failed:
@@ -646,13 +646,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 }
             }))
             
-   
+            //isObservingCurrentItem = true
             
             if(self.player == nil){
                 //log("player is null")
                 return
             }
-            isObservingCurrentItem = true
+            
             self.currentTimeMs = 0.0
             self.playing = false
         } catch let error {
