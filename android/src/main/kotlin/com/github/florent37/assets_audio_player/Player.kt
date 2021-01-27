@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Message
+import android.util.Log
 import com.github.florent37.assets_audio_player.headset.HeadsetStrategy
 import com.github.florent37.assets_audio_player.notification.AudioMetas
 import com.github.florent37.assets_audio_player.notification.NotificationManager
@@ -165,7 +166,7 @@ class Player(
         try {
             stop(pingListener = false)
         } catch (t: Throwable){
-            print(t)
+            Log.e("assets audio player" , "player is already opening")
         }
 
         this.displayNotification = displayNotification
@@ -252,6 +253,7 @@ class Player(
             forwardHandler!!.stop()
             forwardHandler = null
         }
+        Log.e("sahhar youcef" , "closing player")
         mediaPlayer = null
         onForwardRewind?.invoke(0.0)
         if (pingListener) { //action from user

@@ -4,10 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.util.Log
 import android.view.KeyEvent
 import androidx.annotation.NonNull
 import com.github.florent37.assets_audio_player.headset.HeadsetStrategy
 import com.github.florent37.assets_audio_player.notification.*
+import com.github.florent37.assets_audio_player.playerimplem.PlayerFinder
 import com.github.florent37.assets_audio_player.stopwhencall.AudioFocusStrategy
 import com.github.florent37.assets_audio_player.stopwhencall.HeadsetManager
 import com.github.florent37.assets_audio_player.stopwhencall.StopWhenCall
@@ -495,7 +497,6 @@ class AssetsAudioPlayer(
 
                     val audioFocusStrategy = AudioFocusStrategy.from(args["audioFocusStrategy"] as? Map<*, *>)
                     val headsetStrategy = HeadsetStrategy.from(args["headPhoneStrategy"] as? String)
-
                     getOrCreatePlayer(id).open(
                             assetAudioPath = path,
                             assetAudioPackage = assetPackage,
