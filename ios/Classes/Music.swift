@@ -221,7 +221,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.notificationSettings = notificationSettings
         self.audioMetas = audioMetas
         
-        UIApplication.shared.beginReceivingRemoteControlEvents()
+      
         let commandCenter = MPRemoteCommandCenter.shared()
         
         // Fallback on earlier versions
@@ -279,9 +279,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             if #available(iOS 10.0, *) {
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
                 try AVAudioSession.sharedInstance().setActive(true)
+                  UIApplication.shared.beginReceivingRemoteControlEvents()
             } else {
                 try AVAudioSession.sharedInstance().setCategory(.playback, options: [])
                 try AVAudioSession.sharedInstance().setActive(true)
+                  UIApplication.shared.beginReceivingRemoteControlEvents()
             }
         } catch let error {
             print(error)
@@ -572,8 +574,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             var isObservingCurrentItem = false
 
-            if isObservingCurrentItem {	
-               observerStatus.removeAll()	
+            if isObservingCurrentItem {
+               observerStatus.removeAll()
             }
 
             observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
@@ -583,7 +585,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     debugPrint("status: unknown")
                 case .readyToPlay:
                     debugPrint("status: ready to play")
-
                     
                     if(audioType == "liveStream"){
                         self?.channel.invokeMethod(Music.METHOD_CURRENT, arguments: ["totalDurationMs": 0.0])
@@ -607,13 +608,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                         return
                     }
-//                    if #available(iOS 10.0, *) {
-//                        item.preferredForwardBufferDuration = TimeInterval(10)
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-                    self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+
+                  
                     if(autoStart == true){
                         self?.play()
                     }
@@ -626,22 +622,25 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
+                  
+                    self?.addPostPlayingBufferListeners(item: item)
+                   
+                    
                     self?.setBuffering(false)
-                    
-                    
 
-                    if(isObservingCurrentItem ) {	                    
+                    if(isObservingCurrentItem) {
+                              if((self?.observerStatus.count ?? -1) > 0){
+                                                self?.observerStatus.removeAll()
+                            }
+                    }
+
+                    isObservingCurrentItem = false                    
                     self?.addPlayerStatusListeners(item: (self?.player)!);
-                    if((self?.observerStatus.count ?? -1) > 0){	
-                    self?.observerStatus.removeAll()	
-                    }	
-                    }	
-
-                    isObservingCurrentItem = false
+                    
                     result(nil)
                 case .failed:
                     debugPrint("playback failed")
-                    self!.setBuffering(false)
+                    self?.setBuffering(false)
                     self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                     return
                 @unknown default:
@@ -649,8 +648,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 }
             }))
             
-            
-            
+   
+            isObservingCurrentItem = true
+
             if(self.player == nil){
                 //log("player is null")
                 return
@@ -694,9 +694,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
             if(value.isPlaybackBufferEmpty){
-             self?.setBuffering(true)
+                self?.setBuffering(true)
             }else{
-            self?.setBuffering(false)
+                self?.setBuffering(false)
             }
         })
         
@@ -719,6 +719,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 if(value.timeControlStatus == AVPlayer.TimeControlStatus.playing){
                     self?.playing = true;
                     self?.updateNotifStatus(playing: true, stopped: false, rate: self?.player?.rate)
+               
                 }else if(value.timeControlStatus == AVPlayer.TimeControlStatus.paused){
                     self?.playing = false;
                     self?.updateNotifStatus(playing: false, stopped: false, rate: 0)
@@ -754,25 +755,29 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         
         // Switch over the interruption type.
         switch type {
-            
         case .began:
-            // An interruption began. Update the UI as needed.
-            debugPrint("Player paused")
-            pause()
-            
+            self.pause();
+            print("handleInterruption :- Interruption starts. Status pause")
+            break
         case .ended:
             // An interruption ended. Resume playback, if appropriate.
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
-                   play()
+                   // Interruption ended. Playback should resume.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.play()
+                    print("handleInterruption :- Play")
+                }
                 }
                 // Interruption ended. Playback should resume.
             } else {
-                // Interruption ended. Playback should not resume.
+                // // Interruption ended. Playback should not resume.
+                self.pause()
+                print("handleInterruption :- Interruption ended. Playback should not resume")
             }
-            
+            break
         default: ()
         }
         #endif
