@@ -609,11 +609,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         return
                     }
 
-                  
+                     
+                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
+
                     if(autoStart == true){
                         self?.play()
                     }
-                    
                     self?.setVolume(volume: volume)
                     self?.setPlaySpeed(playSpeed: playSpeed)
                     
@@ -622,11 +624,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-                  
-                    self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+               
                     
-                    // self!.setBuffering(false)
+                    self!.setBuffering(false)
                     // if(isObservingCurrentItem) {
                     //           if((self?.observerStatus.count ?? -1) > 0){
                     //                             self?.observerStatus.removeAll()
@@ -690,7 +690,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
        
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
-            if(value.isPlaybackBufferEmpty){
+            if(value?.isPlaybackBufferEmpty){
              self?.setBuffering(true)
             }else{
             self?.setBuffering(false)
