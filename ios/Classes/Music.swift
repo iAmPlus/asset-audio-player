@@ -622,7 +622,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-                    self!.setBuffering(false)
+                    self?.setBuffering(false)
                     self?.addPostPlayingBufferListeners(item: item)
                     self?.addPlayerStatusListeners(item: (self?.player)!);
                     
@@ -690,9 +690,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
             if(value.isPlaybackBufferEmpty){
-             self!.setBuffering(true)
+             self?.setBuffering(true)
             }else{
-            self!.setBuffering(false)
+            self?.setBuffering(false)
             }
         })
         
