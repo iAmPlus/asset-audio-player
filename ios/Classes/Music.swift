@@ -624,9 +624,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     self?._playingPath = assetPath
                   
                     self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                   
                     
-                    self!.setBuffering(false)
+                    self?.setBuffering(false)
 
                     if(isObservingCurrentItem) {
                               if((self?.observerStatus.count ?? -1) > 0){
@@ -635,11 +635,12 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
 
                     isObservingCurrentItem = false                    
-              
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                    
                     result(nil)
                 case .failed:
                     debugPrint("playback failed")
-                    self!.setBuffering(false)
+                    self?.setBuffering(false)
                     self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                     return
                 @unknown default:
@@ -718,6 +719,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 if(value.timeControlStatus == AVPlayer.TimeControlStatus.playing){
                     self?.playing = true;
                     self?.updateNotifStatus(playing: true, stopped: false, rate: self?.player?.rate)
+               
                 }else if(value.timeControlStatus == AVPlayer.TimeControlStatus.paused){
                     self?.playing = false;
                     self?.updateNotifStatus(playing: false, stopped: false, rate: 0)
