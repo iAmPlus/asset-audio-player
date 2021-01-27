@@ -572,11 +572,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             self.isLiveStream = false
             
-            // var isObservingCurrentItem = false
+            var isObservingCurrentItem = false
 
-            // if isObservingCurrentItem {
-            //    observerStatus.removeAll()
-            // }
+            if isObservingCurrentItem {
+               observerStatus.removeAll()
+            }
 
             observerStatus.append( item.observe(\.status, changeHandler: { [weak self] (item, value) in
                 
@@ -609,13 +609,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                         return
                     }
 
-                     
-                    self?.addPostPlayingBufferListeners(item: item)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
-
+                  
                     if(autoStart == true){
                         self?.play()
                     }
+                    
                     self?.setVolume(volume: volume)
                     self?.setPlaySpeed(playSpeed: playSpeed)
                     
@@ -624,21 +622,23 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-               
+                  
+                    self?.addPostPlayingBufferListeners(item: item)
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     
-                    self!.setBuffering(false)
-                    // if(isObservingCurrentItem) {
-                    //           if((self?.observerStatus.count ?? -1) > 0){
-                    //                             self?.observerStatus.removeAll()
-                    //         }
-                    // }
+                    self?.setBuffering(false)
+                    if(isObservingCurrentItem) {
+                              if((self?.observerStatus.count ?? -1) > 0){
+                                                self?.observerStatus.removeAll()
+                            }
+                    }
 
-                    // isObservingCurrentItem = false                    
+                    isObservingCurrentItem = false                    
               
                     result(nil)
                 case .failed:
                     debugPrint("playback failed")
-                    self?.stop()
+                    self?.setBuffering(false)
                     self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                     return
                 @unknown default:
@@ -646,8 +646,9 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 }
             }))
             
-            //isObservingCurrentItem = true
-            
+   
+            isObservingCurrentItem = true
+
             if(self.player == nil){
                 //log("player is null")
                 return
@@ -690,7 +691,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
        
         observerStatus.append( item.observe(\.isPlaybackBufferEmpty, options: [.new]) { [weak self] (value, _) in
             // show buffering
-            if(value?.isPlaybackBufferEmpty){
+            if(value.isPlaybackBufferEmpty){
              self?.setBuffering(true)
             }else{
             self?.setBuffering(false)
