@@ -622,22 +622,21 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     }
                     
                     self?._playingPath = assetPath
-                    //self?.setBuffering(false)
-                    self?.addPlayerStatusListeners(item: (self?.player)!);
+                    self?.addPostPlayingBufferListeners(item: item)
+                    //self!.setBuffering(false)
+      
                     if(isObservingCurrentItem) {
                               if((self?.observerStatus.count ?? -1) > 0){
                                                 self?.observerStatus.removeAll()
                             }
                     }
-                    
-                    self?.addPostPlayingBufferListeners(item: item)
-          
-                    isObservingCurrentItem = false
-                
+
+                    isObservingCurrentItem = false                    
+                    self?.addPlayerStatusListeners(item: (self?.player)!);
                     result(nil)
                 case .failed:
                     debugPrint("playback failed")
-                    self!.setBuffering(false)
+                    self?.stop()
                     self?.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "playback failed duration is 0"))
                     return
                 @unknown default:
