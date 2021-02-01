@@ -694,9 +694,9 @@ class AssetsAudioPlayer {
     });
   }
 
-  Future<void> playlistPlayAtIndex(int index) async {
+  void playlistPlayAtIndex(int index) {
     _playlist.moveTo(index);
-    await _openPlaylistCurrent();
+    _openPlaylistCurrent();
   }
 
   /// keepLoopMode:
@@ -775,8 +775,9 @@ class AssetsAudioPlayer {
   Future<void> _openPlaylistCurrent(
       {bool autoStart = true, Duration seek}) async {
     if (_playlist != null) {
+      var audio = _playlist.currentAudio();
       return _open(
-        _playlist.currentAudio(),
+        audio,
         forcedVolume: _playlist.volume,
         respectSilentMode: _playlist.respectSilentMode,
         showNotification: _playlist.showNotification,
@@ -1038,7 +1039,6 @@ class AssetsAudioPlayer {
   }) async {
     if (!(cancelableOperation?.isCompleted ?? true)) {
       cancelableOperation.cancel();
-      print('assets_audio_player : canceled');
     }
     _isLoading.add(true);
     final focusStrategy = audioFocusStrategy ?? defaultFocusStrategy;
@@ -1592,16 +1592,9 @@ class _CurrentPlaylist {
     return index;
   }
 
-  int moveTo(int index) {
-    if (index < 0) {
-      shuffledIndex = index;
-      playlistIndex = indexList.indexWhere((element) => element == 0);
-    } else {
-      shuffledIndex = index;
-      playlistIndex = indexList.indexWhere((element) => element == index);
-    }
-    print('assets_audio_player : moveTo => $playlistIndex');
-    return playlistIndex;
+  void moveTo(int index) {
+    shuffledIndex = index;
+    playlistIndex = indexList.indexOf(index);
   }
 
   //nullable
