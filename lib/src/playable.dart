@@ -101,6 +101,7 @@ class Metas {
   final Map<String, dynamic> extra;
   final MetasImage image;
   final MetasImage onImageLoadFail;
+  final Duration duration;
 
   Metas(
       {this.hexColor,
@@ -113,6 +114,7 @@ class Metas {
       this.albumID,
       this.image,
       this.extra,
+      this.duration,
       this.onImageLoadFail}) {
     if (this.id == null) {
       this.id = Uuid().v4();
@@ -130,6 +132,7 @@ class Metas {
           album == other.album &&
           album == other.albumID &&
           album == other.artistID &&
+          duration == other.duration &&
           image == other.image &&
           onImageLoadFail == onImageLoadFail;
 
@@ -141,6 +144,7 @@ class Metas {
       artistID.hashCode ^
       albumID.hashCode ^
       image.hashCode ^
+      duration.hashCode ^
       onImageLoadFail.hashCode;
 
   Metas copyWith({
@@ -150,6 +154,7 @@ class Metas {
     String album,
     String artistID,
     String albumID,
+    Duration duration,
     Map<String, dynamic> extra,
     MetasImage image,
     MetasImage onImageLoadFail,
@@ -161,6 +166,7 @@ class Metas {
       album: album ?? this.album,
       albumID: albumID ?? this.albumID,
       artistID: artistID ?? this.artistID,
+      duration: duration ?? this.duration,
       extra: extra ?? this.extra,
       image: image ?? this.image,
       onImageLoadFail: onImageLoadFail ?? this.onImageLoadFail,

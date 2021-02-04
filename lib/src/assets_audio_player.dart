@@ -355,9 +355,6 @@ class AssetsAudioPlayer {
   final BehaviorSubject<bool> _isBuffering =
       BehaviorSubject<bool>.seeded(false);
 
-  ValueStream<bool> get isLoading => _isLoading.stream;
-  final BehaviorSubject<bool> _isLoading = BehaviorSubject<bool>.seeded(false);
-
   final PublishSubject<CacheDownloadInfos> _cacheDownloadInfos =
       PublishSubject<CacheDownloadInfos>();
   Stream<CacheDownloadInfos> get cacheDownloadInfos =>
@@ -490,7 +487,6 @@ class AssetsAudioPlayer {
     _playSpeed.close();
     _playerState.close();
     _isBuffering.close();
-    _isLoading.close();
     _forwardRewindSpeed.close();
     _realtimePlayingInfos.close();
     _realTimeSubscription?.cancel();
@@ -555,30 +551,7 @@ class AssetsAudioPlayer {
               _playlistAudioFinished.add(finishedPlay);
             }
             _playlistFinished.value = true;
-            _current.value = null;
             _playerState.value = PlayerState.stop;
-          } else {
-            final totalDurationMs =
-                _toDuration(call.arguments["totalDurationMs"]);
-
-            final playingAudio = PlayingAudio(
-              audio: _lastOpenedAssetsAudio,
-              duration: totalDurationMs,
-            );
-
-            if (_playlist != null) {
-              final current = Playing(
-                audio: playingAudio,
-                index: _playlist.indexList[_playlist.playlistIndex],
-                hasNext: _playlist.hasNext(),
-                playlist: ReadingPlaylist(
-                    audios: _playlist.playlist.audios,
-                    currentIndex: _playlist.indexList[_playlist.playlistIndex],
-                    nextIndex: _playlist.nextIndex(),
-                    previousIndex: _playlist.previousIndex()),
-              );
-              _current.value = current;
-            }
           }
           break;
         case METHOD_POSITION:
@@ -595,7 +568,6 @@ class AssetsAudioPlayer {
           break;
         case METHOD_IS_BUFFERING:
           _isBuffering.value = call.arguments;
-          _isLoading.value = call.arguments;
           break;
         case METHOD_PLAY_SPEED:
           _playSpeed.value = call.arguments;
@@ -1040,7 +1012,7 @@ class AssetsAudioPlayer {
     if (!(cancelableOperation?.isCompleted ?? true)) {
       cancelableOperation.cancel();
     }
-    _isLoading.add(true);
+    _isBuffering.add(true);
     final focusStrategy = audioFocusStrategy ?? defaultFocusStrategy;
     final currentAudio = _lastOpenedAssetsAudio;
     if (audioInput != null) {
@@ -1049,7 +1021,7 @@ class AssetsAudioPlayer {
       final current = Playing(
         audio: PlayingAudio(
           audio: audioInput,
-          duration: Duration.zero,
+          duration: audioInput.metas.duration,
         ),
         index: _playlist.indexList[_playlist.playlistIndex],
         hasNext: _playlist.hasNext(),
@@ -1060,6 +1032,7 @@ class AssetsAudioPlayer {
             previousIndex: _playlist.previousIndex()),
       );
       _current.add(current);
+      _currentPosition.add(Duration.zero);
 
       cancelableOperation =
           await CancelableOperation.fromFuture(onPlay(audioInput)).then(
@@ -1124,7 +1097,6 @@ class AssetsAudioPlayer {
             _lastOpenedAssetsAudio =
                 currentAudio; //revert to the previous audio
             _isBuffering.add(false);
-            _isLoading.add(false);
             _currentPosition.add(Duration.zero);
             print('assets_audio_player : $e');
             return Future.error(e);
@@ -1273,7 +1245,6 @@ class AssetsAudioPlayer {
       _acceptUserOpen = true;
     } catch (t) {
       _isBuffering.add(false);
-      _isLoading.add(false);
       _acceptUserOpen = true;
       throw t;
     }
