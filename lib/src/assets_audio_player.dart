@@ -552,7 +552,28 @@ class AssetsAudioPlayer {
             }
             _playlistFinished.value = true;
             _playerState.value = PlayerState.stop;
-          }
+          } else {
+            final totalDurationMs =
+                _toDuration(call.arguments["totalDurationMs"]);
+
+            final playingAudio = PlayingAudio(
+              audio: _lastOpenedAssetsAudio,
+              duration: totalDurationMs,
+            );
+
+            if (_playlist != null) {
+              final current = Playing(
+                audio: playingAudio,
+                index: _playlist.indexList[_playlist.playlistIndex],
+                hasNext: _playlist.hasNext(),
+                playlist: ReadingPlaylist(
+                    audios: _playlist.playlist.audios,
+                    currentIndex: _playlist.indexList[_playlist.playlistIndex],
+                    nextIndex: _playlist.nextIndex(),
+                    previousIndex: _playlist.previousIndex()),
+              );
+              _current.value = current;
+            }
           break;
         case METHOD_POSITION:
           _onPositionReceived(call.arguments);
