@@ -574,6 +574,7 @@ class AssetsAudioPlayer {
               );
               _current.value = current;
             }
+            }
           break;
         case METHOD_POSITION:
           _onPositionReceived(call.arguments);
