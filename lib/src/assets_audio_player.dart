@@ -689,11 +689,10 @@ class AssetsAudioPlayer {
   }
 
    Future<void> playlistPlayAtIndex(int index) async {
-    await _openPlaylistCurrent();
-    playlist.startIndex = index;
+     playlist.startIndex = index;
     _playlist.moveTo(index);
+    await _openPlaylistCurrent();
   }
-
 
   /// keepLoopMode:
   /// if true : the loopMode is .single => execute previous() will keep it .single
