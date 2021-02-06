@@ -691,7 +691,7 @@ class AssetsAudioPlayer {
   Future<void> playlistPlayAtIndex(int index) async {
     print('assets_audio_player_index : $index');
     _playlist.moveTo(index);
-    await _openPlaylistCurrent(autoStart: true);
+    await _openPlaylistCurrent();
   }
 
   /// keepLoopMode:
@@ -1188,7 +1188,7 @@ class AssetsAudioPlayer {
       headPhoneStrategy: headPhoneStrategy,
     );
     _updatePlaylistIndexes();
-    _playlist.moveTo(playlist.startIndex);
+    //_playlist.moveTo(playlist.startIndex);
 
     playlist.setCurrentlyOpenedIn(_playerEditor);
 
