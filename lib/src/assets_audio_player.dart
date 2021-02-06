@@ -574,7 +574,7 @@ class AssetsAudioPlayer {
               );
               _current.value = current;
             }
-            }
+          }
           break;
         case METHOD_POSITION:
           _onPositionReceived(call.arguments);
@@ -688,9 +688,9 @@ class AssetsAudioPlayer {
     });
   }
 
-  void playlistPlayAtIndex(int index) {
+  Future<void> playlistPlayAtIndex(int index) async {
     _playlist.moveTo(index);
-    _openPlaylistCurrent();
+    await _openPlaylistCurrent();
   }
 
   /// keepLoopMode:
@@ -1587,7 +1587,7 @@ class _CurrentPlaylist {
 
   void moveTo(int index) {
     shuffledIndex = index;
-    playlistIndex = indexList.indexOf(index);
+    playlistIndex = indexList.indexWhere((element) => element == index);
   }
 
   //nullable
