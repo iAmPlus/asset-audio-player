@@ -94,10 +94,10 @@ class Metas {
   final String title;
   final String artist;
   final String album;
-  final String artistID;
-  final String albumID;
+  final String artistId;
+  final String albumId;
   final String hexColor;
-  final String languageID;
+  final String languageId;
   final Map<String, dynamic> extra;
   final MetasImage image;
   final MetasImage onImageLoadFail;
@@ -105,13 +105,13 @@ class Metas {
 
   Metas(
       {this.hexColor,
-      this.languageID,
+      this.languageId,
       this.id,
       this.title,
       this.artist,
-      this.artistID,
+      this.artistId,
       this.album,
-      this.albumID,
+      this.albumId,
       this.image,
       this.extra,
       this.duration,
@@ -130,8 +130,8 @@ class Metas {
           id == other.id &&
           artist == other.artist &&
           album == other.album &&
-          album == other.albumID &&
-          album == other.artistID &&
+          album == other.albumId &&
+          album == other.artistId &&
           duration == other.duration &&
           image == other.image &&
           onImageLoadFail == onImageLoadFail;
@@ -141,8 +141,8 @@ class Metas {
       title.hashCode ^
       artist.hashCode ^
       album.hashCode ^
-      artistID.hashCode ^
-      albumID.hashCode ^
+      artistId.hashCode ^
+      albumId.hashCode ^
       image.hashCode ^
       duration.hashCode ^
       onImageLoadFail.hashCode;
@@ -152,8 +152,8 @@ class Metas {
     String title,
     String artist,
     String album,
-    String artistID,
-    String albumID,
+    String artistId,
+    String albumId,
     Duration duration,
     Map<String, dynamic> extra,
     MetasImage image,
@@ -164,8 +164,8 @@ class Metas {
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
-      albumID: albumID ?? this.albumID,
-      artistID: artistID ?? this.artistID,
+      albumId: albumId ?? this.albumId,
+      artistId: artistId ?? this.artistId,
       duration: duration ?? this.duration,
       extra: extra ?? this.extra,
       image: image ?? this.image,

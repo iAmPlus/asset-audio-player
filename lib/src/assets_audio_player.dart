@@ -954,20 +954,6 @@ class AssetsAudioPlayer {
 
   void _updatePlaylistIndexes() {
     _playlist.clearPlayerAudio(shuffle);
-    // final currentAudio = Playing(
-    //   audio: PlayingAudio(
-    //     audio: current.value.audio.audio,
-    //     duration: realtimePlayingInfos?.value?.currentPosition ?? Duration.zero,
-    //   ),
-    //   index: _playlist.indexList[_playlist.playlistIndex],
-    //   hasNext: _playlist.hasNext(),
-    //   playlist: ReadingPlaylist(
-    //       audios: _playlist.playlist.audios,
-    //       currentIndex: _playlist.indexList[_playlist.playlistIndex],
-    //       nextIndex: _playlist.nextIndex(),
-    //       previousIndex: _playlist.previousIndex()),
-    // );
-    // _current.add(currentAudio);
   }
 
   /// Converts a number to duration
