@@ -178,11 +178,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     #if os(iOS)
     func getAudioCategory(respectSilentMode: Bool, showNotification: Bool) ->  AVAudioSession.Category {
         if(showNotification) {
-            return AVAudioSession.Category.playback
+            return AVAudioSession.Category.multiRoute
         } else if(respectSilentMode) {
             return AVAudioSession.Category.soloAmbient
         } else {
-            return AVAudioSession.Category.playback
+            return AVAudioSession.Category.multiRoute
         }
     }
     #endif
@@ -277,11 +277,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         //This isn't currently possible in iOS. Even just changing your category options to .MixWithOthers causes your nowPlayingInfo to be ignored.
         do {
             if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+                try AVAudioSession.sharedInstance().setCategory(.multiRoute, mode: .default, options: [])
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             } else {
-                try AVAudioSession.sharedInstance().setCategory(.playback, options: [])
+                try AVAudioSession.sharedInstance().setCategory(.multiRoute, options: [])
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             }
@@ -567,6 +567,8 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             // Watch notifications
             notifCenter.addObserver(self, selector: #selector(self.newErrorLogEntry), name: NSNotification.Name.AVPlayerItemNewErrorLogEntry, object: item)
             notifCenter.addObserver(self, selector: #selector(self.failedToPlayToEndTime), name: NSNotification.Name.AVPlayerItemFailedToPlayToEndTime, object: item)
+            
+            notifCenter.addObserver(self, selector: #selector(self.volumeChanged), name: NSNotification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"), object: nil)
             
             self.setBuffering(true)
             
@@ -960,11 +962,22 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         }
     }
     
+    @objc func volumeChanged(notification: NSNotification){
+        let volume = notification.userInfo?["AVSystemController_AudioVolumeNotificationParameter"]
+        if let doubleVolume = volume as? Double {
+            self.setVolume(volume: doubleVolume)
+        }
+    }
+    
     func _deinit(){
         NotificationCenter.default.removeObserver(self)
         self.observerStatus.forEach {
             $0.invalidate()
         }
+        NotificationCenter.default.removeObserver(self,
+                                                  name: Notification.Name("AVSystemController_SystemVolumeDidChangeNotification"),
+                                                  object: nil)
+        
         self.observerStatus.removeAll()
         #if os(iOS)
         self.deinitMediaPlayerNotifEvent()
