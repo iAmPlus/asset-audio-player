@@ -66,6 +66,9 @@ class PlayerEditor {
   PlayerEditor._(this.assetsAudioPlayer);
 
   void onAudioRemovedAt(int index) {
+    debugPrint(
+        'PlaylistIndex : ${assetsAudioPlayer._playlist.playlistIndex.toString()}');
+    debugPrint('RemovedIndex : ${index.toString()}');
     if (index < assetsAudioPlayer._playlist.playlistIndex) {
       assetsAudioPlayer._playlist.playlistIndex =
           assetsAudioPlayer._playlist.playlistIndex - 1;
