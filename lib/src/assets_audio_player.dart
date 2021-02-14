@@ -67,16 +67,16 @@ class PlayerEditor {
 
   void onAudioRemovedAt(int index) {
     assetsAudioPlayer._updatePlaylistIndexes();
-    if (assetsAudioPlayer._playlist.playlistIndex == index) {
-      assetsAudioPlayer._openPlaylistCurrent();
-    }
+    // if (assetsAudioPlayer._playlist.playlistIndex == index) {
+    //   assetsAudioPlayer._openPlaylistCurrent();
+    // }
   }
 
   void onAudioAddedAt(int index) {
     assetsAudioPlayer._updatePlaylistIndexes();
-    if (assetsAudioPlayer._playlist.playlistIndex == index) {
-      assetsAudioPlayer._openPlaylistCurrent();
-    }
+    // if (assetsAudioPlayer._playlist.playlistIndex == index) {
+    //   assetsAudioPlayer._openPlaylistCurrent();
+    // }
   }
 
   void onAudioReplacedAt(int index, bool keepPlayingPositionIfCurrent) {
