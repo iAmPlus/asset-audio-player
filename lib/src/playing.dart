@@ -49,18 +49,17 @@ class PlayingAudio {
   int get hashCode => audio.hashCode ^ duration.hashCode;
 }
 
-@immutable
 class ReadingPlaylist {
   final List<Audio> audios;
   final int nextIndex;
   final int previousIndex;
-  final int currentIndex;
+  int currentIndex;
 
-  const ReadingPlaylist({
+  ReadingPlaylist({
     this.previousIndex,
     this.nextIndex,
     this.audios,
-    this.currentIndex = 0,
+    this.currentIndex,
   });
 
   Audio get current => audios[currentIndex];
