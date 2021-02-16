@@ -65,18 +65,29 @@ class PlayerEditor {
   final AssetsAudioPlayer assetsAudioPlayer;
   PlayerEditor._(this.assetsAudioPlayer);
 
-  void onAudioRemovedAt(int index) {
+  void onAudioRemovedAt(int index, {bool reOrdering = false}) {
     assetsAudioPlayer._updatePlaylistIndexes();
-    // if (assetsAudioPlayer._playlist.playlistIndex == index) {
-    //   assetsAudioPlayer._openPlaylistCurrent();
-    // }
+    if (index < assetsAudioPlayer?.current?.value?.index) {
+      var updateIndex =
+          assetsAudioPlayer.current.value.playlist.audios.indexWhere(
+        (element) =>
+            element.metas.id ==
+            assetsAudioPlayer?.current?.value?.audio?.audio?.metas?.id,
+      );
+      if (index != -1) {
+        assetsAudioPlayer._playlist.playlistIndex = updateIndex;
+      }
+    }
+    if (assetsAudioPlayer._playlist.playlistIndex == index && !reOrdering) {
+      assetsAudioPlayer._openPlaylistCurrent();
+    }
   }
 
-  void onAudioAddedAt(int index) {
+  void onAudioAddedAt(int index, {bool reOrdering = false}) {
     assetsAudioPlayer._updatePlaylistIndexes();
-    // if (assetsAudioPlayer._playlist.playlistIndex == index) {
-    //   assetsAudioPlayer._openPlaylistCurrent();
-    // }
+    if (assetsAudioPlayer._playlist.playlistIndex == index && !reOrdering) {
+      assetsAudioPlayer._openPlaylistCurrent();
+    }
   }
 
   void onAudioReplacedAt(int index, bool keepPlayingPositionIfCurrent) {
@@ -1525,13 +1536,11 @@ class _CurrentPlaylist {
   }
 
   selectNext() {
-    print('assets_audio_player : current index => $playlistIndex');
     if (hasNext()) {
       playlistIndex = playlistIndex + 1;
     } else {
       playlistIndex = playlistIndex;
     }
-    print('assets_audio_player : next index => $playlistIndex');
   }
 
   List<int> indexList = [];
@@ -1546,7 +1555,6 @@ class _CurrentPlaylist {
     } else {
       _sortAudios();
     }
-    print('assets_audio_player : $indexList');
   }
 
   void _sortAudios() {
