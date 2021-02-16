@@ -352,12 +352,12 @@ class Playlist extends Playable {
     return this;
   }
 
-  Playlist insert(int index, Audio audio) {
+  Playlist insert(int index, Audio audio, {bool reOrdering = false}) {
     if (audio != null && index >= 0) {
       if (index < this.audios.length) {
         this.audios.insert(index, audio);
         super.currentlyOpenedIn.forEach((playerEditor) {
-          playerEditor.onAudioAddedAt(index);
+          playerEditor.onAudioAddedAt(index, reOrdering: reOrdering);
         });
       } else {
         return this.add(audio);
@@ -397,10 +397,10 @@ class Playlist extends Playable {
     return removed;
   }
 
-  Audio removeAtIndex(int index) {
+  Audio removeAtIndex(int index, {bool reOrdering = false}) {
     Audio removedAudio = this.audios.removeAt(index);
     super.currentlyOpenedIn.forEach((playerEditor) {
-      playerEditor.onAudioRemovedAt(index);
+      playerEditor.onAudioRemovedAt(index, reOrdering: reOrdering);
     });
     return removedAudio;
   }
