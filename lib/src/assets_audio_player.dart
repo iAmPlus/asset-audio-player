@@ -867,7 +867,7 @@ class AssetsAudioPlayer {
             playlist: this._current.value.playlist,
           ));
         }
-
+        _playlistFinished.value = true;
         _playlist.returnToFirst();
         await _openPlaylistCurrent();
 
@@ -882,6 +882,7 @@ class AssetsAudioPlayer {
             playlist: this._current.value.playlist,
           ));
         }
+        _playlistFinished.value = true;
         _playlist.returnToFirst();
         await _openPlaylistCurrent(autoStart: false);
         return true;
@@ -896,12 +897,13 @@ class AssetsAudioPlayer {
             playlist: this._current.value.playlist,
           ));
         }
-
+        _playlistFinished.value = true;
         _playlist.returnToFirst();
         await _openPlaylistCurrent();
 
         return true;
       } else {
+        _playlistFinished.value = true;
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
