@@ -867,7 +867,7 @@ class AssetsAudioPlayer {
             playlist: this._current.value.playlist,
           ));
         }
-
+        _playlistFinished.value = true;
         _playlist.returnToFirst();
         await _openPlaylistCurrent();
 
@@ -884,7 +884,9 @@ class AssetsAudioPlayer {
             playlist: this._current.value.playlist,
           ));
         }
+        _playlistFinished.value = true;
         _playlist.returnToFirst();
+
         await _openPlaylistCurrent(autoStart: false);
         return true;
       } else if (requestByUser) {
