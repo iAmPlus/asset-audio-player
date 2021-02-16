@@ -909,7 +909,7 @@ class AssetsAudioPlayer {
         return true;
       } else {
         print('assets_audio_player : something else');
-
+        _playlistFinished.value = true;
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
@@ -920,6 +920,7 @@ class AssetsAudioPlayer {
           ));
         }
         print('assets_audio_player : ${curr.audio.audio.metas.title}');
+
         _playlist.returnToFirst();
         await _openPlaylistCurrent(autoStart: false);
         return true;
