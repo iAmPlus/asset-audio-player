@@ -221,7 +221,8 @@ class AssetsAudioPlayer {
     }
   }
 
-  Future<Audio> Function(Audio) onPlay;
+  Future<Audio> Function(Audio) getPlayLink;
+  Future<void> Function(Audio) updateUiColor;
   Future<void> Function() onStop;
   Future<void> Function() onChange;
 
@@ -731,7 +732,7 @@ class AssetsAudioPlayer {
     return false;
   }
 
-  void _onPositionReceived(dynamic argument) {
+  void _onPositionReceived(dynamic argument) async {
     final oldValue = _currentPosition.value;
     int newValue = null;
     if (argument is int) {
@@ -743,6 +744,11 @@ class AssetsAudioPlayer {
     }
     if (newValue != null) {
       _currentPosition.value = Duration(milliseconds: newValue);
+      if (current.value.audio.duration != null) {
+        if (newValue + 10000 >= current.value.audio.duration.inMilliseconds) {
+          getNextAudio();
+        }
+      }
       if (loopMode.value == LoopMode.single ||
           (this._playlist.isSingleAudio &&
               loopMode.value == LoopMode.playlist)) {
@@ -817,11 +823,7 @@ class AssetsAudioPlayer {
     bool keepLoopMode = true,
   }) async {
     if (_playlist != null) {
-      print('assets_audio_player : nextSong');
-
       if (loopMode.value == LoopMode.single) {
-        print('assets_audio_player : loopMode = ${loopMode.value}');
-
         if (!requestByUser) {
           final curr = this._current.value;
           if (curr != null) {
@@ -841,7 +843,6 @@ class AssetsAudioPlayer {
           }
         }
       } else if (_playlist.hasNext()) {
-        print('assets_audio_player : _playlist.hasNext()');
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
@@ -856,7 +857,6 @@ class AssetsAudioPlayer {
 
         return true;
       } else if (loopMode.value == LoopMode.playlist) {
-        print('assets_audio_player : loopMode = ${loopMode.value}');
         //last element
         final curr = this._current.value;
         if (curr != null) {
@@ -873,8 +873,6 @@ class AssetsAudioPlayer {
 
         return true;
       } else if (stopIfLast) {
-        print('assets_audio_player : stopIfLast');
-
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
@@ -888,8 +886,6 @@ class AssetsAudioPlayer {
         await _openPlaylistCurrent(autoStart: false);
         return true;
       } else if (requestByUser) {
-        print('assets_audio_player : requestByUser');
-
         //last element
         final curr = this._current.value;
         if (curr != null) {
@@ -906,8 +902,6 @@ class AssetsAudioPlayer {
 
         return true;
       } else {
-        print('assets_audio_player : something else');
-
         final curr = this._current.value;
         if (curr != null) {
           _playlistAudioFinished.add(Playing(
@@ -917,7 +911,6 @@ class AssetsAudioPlayer {
             playlist: this._current.value.playlist,
           ));
         }
-        print('assets_audio_player : ${curr.audio.audio.metas.title}');
         _playlist.returnToFirst();
         await _openPlaylistCurrent(autoStart: false);
         return true;
@@ -1014,6 +1007,38 @@ class AssetsAudioPlayer {
 
   CancelableOperation cancelableOperation;
 
+  Audio nextAudio = null;
+  bool onProgress = false;
+
+  void getNextAudio() async {
+    print('assets_audio_player_notification => getNextAudio');
+    if (nextAudio != null) {
+      print('assets_audio_player_notification => nextAudio is not null');
+      return;
+    }
+    if (current.value.hasNext) {
+      var value = _playlist.audioAt(at: _playlist.playlistIndex + 1);
+      print('assets_audio_player_notification => audio at');
+      try {
+        nextAudio = await getPlayLink(value);
+      } catch (_) {
+        nextAudio = null;
+      }
+    }
+  }
+
+  Future<Audio> getAudioFile(Audio audioInput) async {
+    print(
+        'assets_audio_player_notification => nextAudio?.metas?.id == audioInput.metas.id ${nextAudio?.metas?.id == audioInput.metas.id}');
+    updateUiColor(audioInput);
+    if (nextAudio?.metas?.id == audioInput.metas.id) {
+      return Future.value(nextAudio);
+    } else {
+      var value = await getPlayLink(audioInput);
+      return value;
+    }
+  }
+
   //private method, used in open(playlist) and open(path)
   Future<void> _open(
     Audio audioInput, {
@@ -1027,9 +1052,11 @@ class AssetsAudioPlayer {
     HeadPhoneStrategy headPhoneStrategy,
     AudioFocusStrategy audioFocusStrategy,
     NotificationSettings notificationSettings,
+    bool crossFade = false,
   }) async {
     if (!(cancelableOperation?.isCompleted ?? true)) {
       cancelableOperation.cancel();
+      nextAudio = null;
     }
     _isBuffering.add(true);
     final focusStrategy = audioFocusStrategy ?? defaultFocusStrategy;
@@ -1054,10 +1081,11 @@ class AssetsAudioPlayer {
       _currentPosition.add(Duration.zero);
 
       cancelableOperation =
-          await CancelableOperation.fromFuture(onPlay(audioInput)).then(
+          await CancelableOperation.fromFuture(getAudioFile(audioInput)).then(
         (value) async {
           try {
             _isBuffering.add(true);
+            nextAudio = null;
             audioInput = value;
             Audio audio = await _handlePlatformAsset(audioInput);
             _showNotification = showNotification;
@@ -1079,6 +1107,7 @@ class AssetsAudioPlayer {
                   audio.playSpeed ??
                   this.playSpeed.value ??
                   defaultPlaySpeed,
+              "crossFade": crossFade,
             };
             if (seek != null) {
               params["seek"] = seek.inMilliseconds.round();
