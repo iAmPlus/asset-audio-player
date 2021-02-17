@@ -281,7 +281,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             } else {
-                try AVAudioSession.sharedInstance().setCategory(.multiRoute, options: [.allowBluetooth, .defaultToSpeaker, .allowAirPlay])
+                try AVAudioSession.sharedInstance().setCategory(.multiRoute, options: [.allowBluetooth, .defaultToSpeaker])
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             }
