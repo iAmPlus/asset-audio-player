@@ -118,7 +118,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _assetsAudioPlayer.onPlay = (audio) async {
+    _assetsAudioPlayer.getPlayLink = (audio) async {
       return audio;
     };
     _assetsAudioPlayer.onChange = () async {};
