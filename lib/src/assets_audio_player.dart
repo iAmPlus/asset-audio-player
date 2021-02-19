@@ -1065,7 +1065,11 @@ class AssetsAudioPlayer {
     final currentAudio = _lastOpenedAssetsAudio;
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
-      pause();
+      if (Platform.isAndroid) {
+        _crossFade();
+      } else {
+        pause();
+      }
       final current = Playing(
         audio: PlayingAudio(
           audio: audioInput,
@@ -1333,6 +1337,12 @@ class AssetsAudioPlayer {
         await _play();
       }
     }
+  }
+
+  Future<void> _crossFade() async {
+    await _sendChannel.invokeMethod('cross_fade', {
+      "id": this.id,
+    });
   }
 
   Future<void> _play() async {

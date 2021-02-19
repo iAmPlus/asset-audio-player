@@ -73,8 +73,8 @@ object PlayerFinder {
         }
         try {
             //try the first
-            implemTester?.stop()
-             implemTester = remainingImpls.first()
+//            implemTester?.stop()
+            implemTester = remainingImpls.first()
             val playerWithDuration = implemTester?.open(
                     configuration = configuration
             )

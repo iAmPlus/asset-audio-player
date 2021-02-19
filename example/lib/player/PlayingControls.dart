@@ -1,6 +1,5 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import '../asset_audio_player_icons.dart';
 
@@ -50,7 +49,10 @@ class PlayingControls extends StatelessWidget {
             color: Colors.black,
           ),
           Center(
-            child: Text("1", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),),
+            child: Text(
+              "1",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       );
@@ -72,10 +74,7 @@ class PlayingControls extends StatelessWidget {
         SizedBox(
           width: 12,
         ),
-        NeumorphicButton(
-          style: NeumorphicStyle(
-            boxShape: NeumorphicBoxShape.circle(),
-          ),
+        MaterialButton(
           padding: EdgeInsets.all(18),
           onPressed: isPlaylist ? this.onPrevious : null,
           child: Icon(AssetAudioPlayerIcons.to_start),
@@ -83,24 +82,20 @@ class PlayingControls extends StatelessWidget {
         SizedBox(
           width: 12,
         ),
-        NeumorphicButton(
-          style: NeumorphicStyle(
-            boxShape: NeumorphicBoxShape.circle(),
-          ),
+        MaterialButton(
           padding: EdgeInsets.all(24),
           onPressed: this.onPlay,
           child: Icon(
-            isPlaying ? AssetAudioPlayerIcons.pause : AssetAudioPlayerIcons.play,
+            isPlaying
+                ? AssetAudioPlayerIcons.pause
+                : AssetAudioPlayerIcons.play,
             size: 32,
           ),
         ),
         SizedBox(
           width: 12,
         ),
-        NeumorphicButton(
-          style: NeumorphicStyle(
-            boxShape: NeumorphicBoxShape.circle(),
-          ),
+        MaterialButton(
           padding: EdgeInsets.all(18),
           child: Icon(AssetAudioPlayerIcons.to_end),
           onPressed: isPlaylist ? this.onNext : null,
@@ -108,11 +103,8 @@ class PlayingControls extends StatelessWidget {
         SizedBox(
           width: 45,
         ),
-        if(onStop != null)
-          NeumorphicButton(
-            style: NeumorphicStyle(
-              boxShape: NeumorphicBoxShape.circle(),
-            ),
+        if (onStop != null)
+          MaterialButton(
             padding: EdgeInsets.all(16),
             onPressed: this.onStop,
             child: Icon(

@@ -450,6 +450,16 @@ class AssetsAudioPlayer(
                     return
                 }
             }
+            "cross_fade" -> {
+                (call.arguments as? Map<*, *>)?.let { args ->
+                    val id = args["id"] as? String ?: run {
+                        result.error("WRONG_FORMAT", "The specified argument (id) must be an String.", null)
+                        return
+                    }
+                    getOrCreatePlayer(id).crossFade()
+                }
+            }
+
             "open" -> {
                 (call.arguments as? Map<*, *>)?.let { args ->
 

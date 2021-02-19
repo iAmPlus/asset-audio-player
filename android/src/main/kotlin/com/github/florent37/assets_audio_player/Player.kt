@@ -19,6 +19,7 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -89,6 +90,7 @@ class Player(
     private var _lastOpenedPath : String? = null
     private var audioMetas: AudioMetas? = null
     private var notificationSettings: NotificationSettings? = null
+    private var playerWithDuration: PlayerFinder.PlayerWithDuration? = null
 
     private var _lastPositionMs: Long? = null
     private val updatePosition = object : Runnable {
@@ -146,6 +148,43 @@ class Player(
         }
     }
 
+    fun crossFade(){
+        playerWithDuration?.player?.stop()
+    }
+
+    private var fadeInTimerTask: TimerTask? = null
+
+
+    private fun startFadeIn() {
+        var fadeVolume = 0f
+        val fadeDuration:Long = 300 //The duration of the fade
+        //The amount of time between volume changes. The smaller this is, the smoother the fade
+        val fadeInterval:Long = 25
+        val maxVolume = 1 //The volume will increase from 0 to 1
+        val numberOfSteps = fadeDuration / fadeInterval //Calculate the number of fade steps
+        //Calculate by how much the volume changes each step
+        val deltaVolume = maxVolume / numberOfSteps.toFloat()
+
+        //Create a new Timer and Timer task to run the fading outside the main UI thread
+        val timer = Timer(true)
+        fadeInTimerTask  = object : TimerTask() {
+            override fun run() {
+                fadeVolume = fadeInStep(deltaVolume , fadeVolume) //Do a fade step
+                //Cancel and Purge the Timer if the desired volume has been reached
+                if (volume >= 1f) {
+                    timer.cancel()
+                    timer.purge()
+                }
+            }
+        }
+        timer.schedule(fadeInTimerTask, fadeInterval, fadeDuration)
+    }
+
+    private fun fadeInStep(deltaVolume: Float , fadeVolume:Float) : Float {
+        setVolume(fadeVolume.toDouble())
+        return fadeVolume + deltaVolume
+    }
+
     fun open(assetAudioPath: String?,
              assetAudioPackage: String?,
              audioType: String,
@@ -163,11 +202,13 @@ class Player(
              result: MethodChannel.Result,
              context: Context
     ) {
-        try {
-            stop(pingListener = false)
-        } catch (t: Throwable){
-            Log.e("assets audio player" , "player is already opening")
-        }
+//        try {
+//            stop(pingListener = false)
+//        } catch (t: Throwable){
+//            Log.e("assets audio player" , "player is already opening")
+//        }
+
+
 
         this.displayNotification = displayNotification
         this.audioMetas = audioMetas
@@ -180,7 +221,7 @@ class Player(
       
         GlobalScope.launch(Dispatchers.Main) {
             try {
-                val playerWithDuration = PlayerFinder.findWorkingPlayer(
+                playerWithDuration = PlayerFinder.findWorkingPlayer(
                         PlayerFinderConfiguration(
                         assetAudioPath = assetAudioPath,
                         flutterAssets = flutterAssets,
@@ -198,17 +239,17 @@ class Player(
                         )
                 )
 
-                val durationMs = playerWithDuration.duration
-                mediaPlayer = playerWithDuration.player
+                val durationMs = playerWithDuration?.duration
+                mediaPlayer = playerWithDuration?.player
 
                 //here one open succeed
-                onReadyToPlay?.invoke(durationMs)
+                onReadyToPlay?.invoke(durationMs!!)
                 mediaPlayer?.getSessionId(listener = {
                     onSessionIdFound?.invoke(it)
                 })
 
                 _playingPath = assetAudioPath
-                _durationMs = durationMs
+                _durationMs = durationMs!!
 
                 setVolume(volume)
                 setPlaySpeed(playSpeed)
@@ -218,7 +259,9 @@ class Player(
                 }
 
                 if (autoStart) {
+
                     play() //display notif inside
+                    startFadeIn()
                 } else {
                     updateNotif() //if pause, we need to display the notif
                 }
@@ -253,7 +296,6 @@ class Player(
             forwardHandler!!.stop()
             forwardHandler = null
         }
-        Log.e("sahhar youcef" , "closing player")
         mediaPlayer = null
         onForwardRewind?.invoke(0.0)
         if (pingListener) { //action from user
@@ -409,9 +451,7 @@ class Player(
                         else -> volume //AudioManager.RINGER_MODE_NORMAL
                     }
                 }
-
                 it.setVolume(v.toFloat())
-
                 onVolumeChanged?.invoke(this.volume) //only notify the setted volume, not the silent mode one
             }
         }

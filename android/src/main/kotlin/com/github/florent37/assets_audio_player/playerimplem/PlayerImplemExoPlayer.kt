@@ -21,6 +21,7 @@ import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
 import com.google.android.exoplayer2.upstream.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import java.io.File
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -38,15 +39,48 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
         SmoothStreaming
     }
 
+    var volume = 1f
+
+    private fun startFadeOut() {
+        val fadeDuration:Long = 300 //The duration of the fade
+        //The amount of time between volume changes. The smaller this is, the smoother the fade
+        val fadeInterval:Long = 25
+        val maxVolume = 1 //The volume will increase from 0 to 1
+        val numberOfSteps = fadeDuration / fadeInterval //Calculate the number of fade steps
+        //Calculate by how much the volume changes each step
+        val deltaVolume = maxVolume / numberOfSteps.toFloat()
+
+        //Create a new Timer and Timer task to run the fading outside the main UI thread
+        val timer = Timer(true)
+        val timerTask: TimerTask = object : TimerTask() {
+            override fun run() {
+                fadeOutStep(deltaVolume) //Do a fade step
+                //Cancel and Purge the Timer if the desired volume has been reached
+                if (volume <= 0f) {
+                    timer.cancel()
+                    timer.purge()
+                    mediaPlayer?.release()
+                    mediaPlayer = null
+                }
+            }
+        }
+        timer.schedule(timerTask, fadeInterval, fadeDuration)
+    }
+
+    private fun fadeOutStep(deltaVolume: Float) {
+        mediaPlayer!!.setVolume(volume)
+        volume -= deltaVolume
+    }
+
     override fun stop(){
-        mediaPlayer?.release()
-        mediaPlayer = null
+        if(mediaPlayer == null){
+            return
+        }
+        volume = 1f
+        startFadeOut()
     }
 
     override suspend fun open(configuration: PlayerFinderConfiguration) : PlayerFinder.PlayerWithDuration {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
         if(AssetsAudioPlayerPlugin.displayLogs) {
             Log.d("PlayerImplem", "trying to open with exoplayer($type)")
         }
@@ -106,6 +140,7 @@ class PlayerImplemExoPlayer(
 ) {
 
     private var mediaPlayer: ExoPlayer? = null
+    private var fadeOutTimerTask: TimerTask? = null
 
     override var loopSingleAudio: Boolean
         get() = mediaPlayer?.repeatMode == REPEAT_MODE_ALL
@@ -118,8 +153,45 @@ class PlayerImplemExoPlayer(
     override val currentPositionMs: Long
         get() = mediaPlayer?.currentPosition ?: 0
 
+    private var volume = 1f
+
+    private fun startFadeOut() {
+        val fadeDuration:Long = 200 //The duration of the fade
+        //The amount of time between volume changes. The smaller this is, the smoother the fade
+        val fadeInterval:Long = 25
+        val maxVolume = 1 //The volume will increase from 0 to 1
+        val numberOfSteps = fadeDuration / fadeInterval //Calculate the number of fade steps
+        //Calculate by how much the volume changes each step
+        val deltaVolume = maxVolume / numberOfSteps.toFloat()
+
+        //Create a new Timer and Timer task to run the fading outside the main UI thread
+        val timer = Timer(true)
+        fadeOutTimerTask  = object : TimerTask() {
+            override fun run() {
+                fadeOutStep(deltaVolume) //Do a fade step
+                //Cancel and Purge the Timer if the desired volume has been reached
+                if (volume <= 0f) {
+                    timer.cancel()
+                    timer.purge()
+                    mediaPlayer?.release()
+                    mediaPlayer = null
+                }
+            }
+        }
+        timer.schedule(fadeOutTimerTask, fadeInterval, fadeDuration)
+    }
+
+    private fun fadeOutStep(deltaVolume: Float) {
+        setVolume(volume)
+        volume -= deltaVolume
+    }
+
     override fun stop() {
-        mediaPlayer?.stop()
+        if(mediaPlayer == null){
+            return
+        }
+        volume = 1f
+        startFadeOut()
     }
 
     override fun play() {
@@ -131,11 +203,11 @@ class PlayerImplemExoPlayer(
     }
 
     private fun getDataSource(context: Context,
-                      flutterAssets: FlutterPlugin.FlutterAssets,
-                      assetAudioPath: String?,
-                      audioType: String,
-                      networkHeaders: Map<*, *>?,
-                      assetAudioPackage: String?
+                              flutterAssets: FlutterPlugin.FlutterAssets,
+                              assetAudioPath: String?,
+                              audioType: String,
+                              networkHeaders: Map<*, *>?,
+                              assetAudioPackage: String?
     ): MediaSource {
         try {
             mediaPlayer?.stop()
@@ -215,7 +287,7 @@ class PlayerImplemExoPlayer(
                     AssetAudioPlayerThrowable.NetworkError(t)
                 }
             }
-            t.message?.contains("unable to connect",true) == true -> {
+            t.message?.contains("unable to connect", true) == true -> {
                 AssetAudioPlayerThrowable.NetworkError(t)
             }
             else -> {

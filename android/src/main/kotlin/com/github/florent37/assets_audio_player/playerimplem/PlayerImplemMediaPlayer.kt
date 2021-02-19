@@ -11,6 +11,7 @@ import com.github.florent37.assets_audio_player.Player
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -25,14 +26,13 @@ class PlayerImplemTesterMediaPlayer : PlayerImplemTester {
     }
 
     override fun stop(){
-        mediaPlayer?.release()
-        mediaPlayer = null
     }
 
     override suspend fun open(configuration: PlayerFinderConfiguration): PlayerFinder.PlayerWithDuration {
         if(AssetsAudioPlayerPlugin.displayLogs) {
             Log.d("PlayerImplem", "trying to open with native mediaplayer")
         }
+
         mediaPlayer = PlayerImplemMediaPlayer(
                 onFinished = {
                     configuration.onFinished?.invoke()
@@ -67,6 +67,8 @@ class PlayerImplemTesterMediaPlayer : PlayerImplemTester {
             throw  t
         }
     }
+
+
 }
 
 class PlayerImplemMediaPlayer(
@@ -99,8 +101,45 @@ class PlayerImplemMediaPlayer(
             mediaPlayer?.isLooping = value
         }
 
+    private var volume = 1f
+
+    private fun startFadeOut() {
+        val fadeDuration:Long = 300 //The duration of the fade
+        //The amount of time between volume changes. The smaller this is, the smoother the fade
+        val fadeInterval:Long = 25
+        val maxVolume = 1 //The volume will increase from 0 to 1
+        val numberOfSteps = fadeDuration / fadeInterval //Calculate the number of fade steps
+        //Calculate by how much the volume changes each step
+        val deltaVolume = maxVolume / numberOfSteps.toFloat()
+
+        //Create a new Timer and Timer task to run the fading outside the main UI thread
+        val timer = Timer(true)
+        val timerTask: TimerTask = object : TimerTask() {
+            override fun run() {
+                fadeOutStep(deltaVolume) //Do a fade step
+                //Cancel and Purge the Timer if the desired volume has been reached
+                if (volume <= 0f) {
+                    timer.cancel()
+                    timer.purge()
+                    mediaPlayer?.release()
+                    mediaPlayer = null
+                }
+            }
+        }
+        timer.schedule(timerTask, fadeInterval, fadeDuration)
+    }
+
+    private fun fadeOutStep(deltaVolume: Float) {
+        setVolume(volume)
+        volume -= deltaVolume
+    }
+
     override fun stop() {
-        mediaPlayer?.stop()
+        if(mediaPlayer == null){
+            return
+        }
+        volume = 1f
+        startFadeOut()
     }
 
     override fun play() {
