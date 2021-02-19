@@ -1581,8 +1581,8 @@ class _CurrentPlaylist {
     prevIndexList.addAll(indexList);
     indexList.clear();
     if (shuffle) {
-      indexList.add(shuffledIndex);
       _shuffleAudios();
+      indexList.add(shuffledIndex);
     } else {
       _sortAudios();
     }
@@ -1603,7 +1603,7 @@ class _CurrentPlaylist {
   }
 
   int _shuffleNumbers() {
-    int index = _random.nextInt(playlist.audios.length);
+    int index = _random.nextInt(playlist.audios.length - 1);
     if (indexList.contains(index)) {
       index = _shuffleNumbers();
     }
