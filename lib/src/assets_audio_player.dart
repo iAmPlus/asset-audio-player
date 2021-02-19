@@ -1581,7 +1581,7 @@ class _CurrentPlaylist {
     prevIndexList.addAll(indexList);
     indexList.clear();
     if (shuffle) {
-      //indexList.add(shuffledIndex);
+      indexList.add(shuffledIndex);
       _shuffleAudios();
     } else {
       _sortAudios();
@@ -1595,7 +1595,9 @@ class _CurrentPlaylist {
   }
 
   void _shuffleAudios() {
-    for (var i = 0; i < this.playlist.audios.length; i++) {
+    print('assets_audio_player : PlaylistLength => ${this.playlist.audios.length}');
+
+    for (var i = 0; i < this.playlist.audios.length - 1; i++) {
       int index;
       index = _shuffleNumbers();
       indexList.add(index);
