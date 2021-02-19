@@ -1577,12 +1577,12 @@ class _CurrentPlaylist {
   List<int> indexList = [];
 
   clearPlayerAudio(bool shuffle) {
+    indexList.clear();
     var prevIndexList = [];
     prevIndexList.addAll(indexList);
-    indexList.clear();
     if (shuffle) {
-      _shuffleAudios();
       indexList.add(shuffledIndex);
+      _shuffleAudios();
     } else {
       _sortAudios();
     }
