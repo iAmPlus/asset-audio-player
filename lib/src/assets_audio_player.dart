@@ -304,6 +304,7 @@ class AssetsAudioPlayer {
 
   /// Then mediaplayer playing audio (mutable)
   final BehaviorSubject<Playing> _current = BehaviorSubject();
+  bool crossFade = false;
 
   /// The current playing audio, filled with the total song duration
   /// Exposes a PlayingAudio
@@ -1054,7 +1055,6 @@ class AssetsAudioPlayer {
     HeadPhoneStrategy headPhoneStrategy,
     AudioFocusStrategy audioFocusStrategy,
     NotificationSettings notificationSettings,
-    bool crossFade = false,
   }) async {
     if (!(cancelableOperation?.isCompleted ?? true)) {
       cancelableOperation.cancel();
@@ -1066,7 +1066,7 @@ class AssetsAudioPlayer {
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
       if (Platform.isAndroid) {
-        _crossFade();
+        _crossFade(crossFade: crossFade);
       } else {
         pause();
       }
@@ -1113,7 +1113,7 @@ class AssetsAudioPlayer {
                   audio.playSpeed ??
                   this.playSpeed.value ??
                   defaultPlaySpeed,
-              "crossFade": crossFade,
+              "cross_fade": crossFade,
             };
             if (seek != null) {
               params["seek"] = seek.inMilliseconds.round();
@@ -1339,9 +1339,10 @@ class AssetsAudioPlayer {
     }
   }
 
-  Future<void> _crossFade() async {
+  Future<void> _crossFade({bool crossFade = false}) async {
     await _sendChannel.invokeMethod('cross_fade', {
       "id": this.id,
+      "cross_fade": crossFade,
     });
   }
 

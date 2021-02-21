@@ -7,8 +7,6 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 interface PlayerImplemTester {
     @Throws(Exception::class)
     suspend fun open(configuration: PlayerFinderConfiguration): PlayerFinder.PlayerWithDuration
-
-    fun stop()
 }
 
 class PlayerFinderConfiguration(
@@ -33,7 +31,6 @@ object PlayerFinder {
     private val DefaultExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.Default)
     private val DASHExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.DASH)
     private val SmoothStreamingExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.SmoothStreaming)
-    private val MediaPlayerTester = PlayerImplemTesterMediaPlayer()
 
     private var implemTester:PlayerImplemTester? = null
 
@@ -41,8 +38,7 @@ object PlayerFinder {
             DefaultExoPlayerTester,
             HLSExoPlayerTester,
             DASHExoPlayerTester,
-            SmoothStreamingExoPlayerTester,
-            MediaPlayerTester
+            SmoothStreamingExoPlayerTester
     )
 
     private fun sortPlayerImpls(path: String?, originList: List<PlayerImplemTester>) : List<PlayerImplemTester> {

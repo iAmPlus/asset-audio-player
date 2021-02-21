@@ -289,7 +289,7 @@ class AssetsAudioPlayer(
                         return
                     }
                     val removeNotification = args["removeNotification"] as? Boolean ?: true
-                    getOrCreatePlayer(id).stop(removeNotification = removeNotification)
+                    getOrCreatePlayer(id).stop(removeNotification = removeNotification , crossFade = true)
                     result.success(null)
                 } ?: run {
                     result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
@@ -456,7 +456,8 @@ class AssetsAudioPlayer(
                         result.error("WRONG_FORMAT", "The specified argument (id) must be an String.", null)
                         return
                     }
-                    getOrCreatePlayer(id).crossFade()
+                    val crossFade = args["cross_fade"] as? Boolean ?: false
+                    getOrCreatePlayer(id).stop(pingListener = false ,crossFade = crossFade)
                 }
             }
 
@@ -507,6 +508,7 @@ class AssetsAudioPlayer(
 
                     val audioFocusStrategy = AudioFocusStrategy.from(args["audioFocusStrategy"] as? Map<*, *>)
                     val headsetStrategy = HeadsetStrategy.from(args["headPhoneStrategy"] as? String)
+                    val crossFade = args["cross_fade"] as? Boolean ?: false
                     getOrCreatePlayer(id).open(
                             assetAudioPath = path,
                             assetAudioPackage = assetPackage,
@@ -523,7 +525,8 @@ class AssetsAudioPlayer(
                             headsetStrategy = headsetStrategy,
                             audioFocusStrategy = audioFocusStrategy,
                             networkHeaders = networkHeaders,
-                            context = context
+                            context = context,
+                            crossFade = crossFade
                     )
                 } ?: run {
                     result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)

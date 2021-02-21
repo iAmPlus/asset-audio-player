@@ -14,7 +14,7 @@ abstract class PlayerImplem(
     abstract var loopSingleAudio: Boolean
     abstract val isPlaying: Boolean
     abstract val currentPositionMs: Long
-    abstract fun stop()
+    abstract fun stop(crossFade:Boolean)
     abstract fun play()
     abstract fun pause()
     abstract fun getSessionId(listener: (Int) -> Unit)

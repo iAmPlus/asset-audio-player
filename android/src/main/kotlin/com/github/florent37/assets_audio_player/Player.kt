@@ -147,16 +147,10 @@ class Player(
             updateNotif()
         }
     }
-
-    fun crossFade(){
-        playerWithDuration?.player?.stop()
-    }
-
-    private var fadeInTimerTask: TimerTask? = null
-
+    var fadeVolume = 0f
 
     private fun startFadeIn() {
-        var fadeVolume = 0f
+        fadeVolume = 0f
         val fadeDuration:Long = 300 //The duration of the fade
         //The amount of time between volume changes. The smaller this is, the smoother the fade
         val fadeInterval:Long = 25
@@ -167,9 +161,9 @@ class Player(
 
         //Create a new Timer and Timer task to run the fading outside the main UI thread
         val timer = Timer(true)
-        fadeInTimerTask  = object : TimerTask() {
+        val fadeInTimerTask:TimerTask  = object : TimerTask() {
             override fun run() {
-                fadeVolume = fadeInStep(deltaVolume , fadeVolume) //Do a fade step
+                fadeInStep(deltaVolume) //Do a fade step
                 //Cancel and Purge the Timer if the desired volume has been reached
                 if (volume >= 1f) {
                     timer.cancel()
@@ -180,9 +174,9 @@ class Player(
         timer.schedule(fadeInTimerTask, fadeInterval, fadeDuration)
     }
 
-    private fun fadeInStep(deltaVolume: Float , fadeVolume:Float) : Float {
-        setVolume(fadeVolume.toDouble())
-        return fadeVolume + deltaVolume
+    private fun fadeInStep(deltaVolume: Float )  {
+        mediaPlayer?.setVolume(fadeVolume)
+        fadeVolume += deltaVolume
     }
 
     fun open(assetAudioPath: String?,
@@ -200,16 +194,9 @@ class Player(
              audioFocusStrategy: AudioFocusStrategy,
              networkHeaders: Map<*, *>?,
              result: MethodChannel.Result,
-             context: Context
+             context: Context,
+             crossFade: Boolean = true
     ) {
-//        try {
-//            stop(pingListener = false)
-//        } catch (t: Throwable){
-//            Log.e("assets audio player" , "player is already opening")
-//        }
-
-
-
         this.displayNotification = displayNotification
         this.audioMetas = audioMetas
         this.notificationSettings = notificationSettings
@@ -238,7 +225,6 @@ class Player(
                         onError= onError
                         )
                 )
-
                 val durationMs = playerWithDuration?.duration
                 mediaPlayer = playerWithDuration?.player
 
@@ -251,20 +237,24 @@ class Player(
                 _playingPath = assetAudioPath
                 _durationMs = durationMs!!
 
-                setVolume(volume)
                 setPlaySpeed(playSpeed)
 
                 seek?.let {
                     this@Player.seek(milliseconds = seek * 1L)
                 }
+                setVolume(0.0)
 
                 if (autoStart) {
-
                     play() //display notif inside
-                    startFadeIn()
                 } else {
                     updateNotif() //if pause, we need to display the notif
                 }
+                if(crossFade){
+                    startFadeIn()
+                } else {
+                    setVolume(1.0)
+                }
+
                 result.success(null)
             } catch (error: Throwable) {
                 error.printStackTrace()
@@ -280,15 +270,14 @@ class Player(
         }
     }
 
-    fun stop(pingListener: Boolean = true, removeNotification: Boolean = true) {
+    fun stop(pingListener: Boolean = true, removeNotification: Boolean = true , crossFade: Boolean = false) {
         mediaPlayer?.apply {
             // Reset duration and position.
             // handler.removeCallbacks(updatePosition);
             // channel.invokeMethod("player.duration", 0);
             onPositionMSChanged?.invoke(0)
 
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
+            mediaPlayer?.stop(crossFade = crossFade)
             onPlaying?.invoke(false)
             handler.removeCallbacks(updatePosition)
         }
