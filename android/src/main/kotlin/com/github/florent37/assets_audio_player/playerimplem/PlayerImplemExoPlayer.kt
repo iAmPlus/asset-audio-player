@@ -154,6 +154,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     }
 
     private fun cancelFadingOut(){
+        previousMediaPlayer?.stop()
         previousMediaPlayer?.release()
         previousMediaPlayer = null
         timer?.cancel()
@@ -169,10 +170,12 @@ object PlayerImplemExoPlayer : PlayerImplem() {
             cancelFadingOut()
         }
         previousMediaPlayer = currentMediaPlayer
+        currentMediaPlayer = null
         if(crosFade){
             volume = 1f
             startFadeOut()
         } else {
+            previousMediaPlayer?.stop()
             previousMediaPlayer?.release()
             previousMediaPlayer = null
         }
@@ -294,6 +297,11 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         var onThisMediaReady = false
 
         try {
+            if(currentMediaPlayer != null){
+                currentMediaPlayer?.release()
+                currentMediaPlayer = null
+                cancelFadingOut()
+            }
             currentMediaPlayer = SimpleExoPlayer.Builder(context)
                     .incrementBufferSize(audioType)
                     .build()
