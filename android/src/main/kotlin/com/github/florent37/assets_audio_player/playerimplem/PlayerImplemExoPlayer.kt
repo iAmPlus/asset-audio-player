@@ -28,7 +28,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class IncompatibleException(val audioType: String, val type: PlayerImplemTesterExoPlayer.Type) : Throwable()
 
-class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
+object PlayerImplemTesterExoPlayer : PlayerImplemTester {
 
     private var mediaPlayer :PlayerImplemExoPlayer? = PlayerImplemExoPlayer
 
@@ -39,7 +39,7 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
         SmoothStreaming
     }
 
-    override suspend fun open(configuration: PlayerFinderConfiguration) : PlayerFinder.PlayerWithDuration {
+    override suspend fun open(configuration: PlayerFinderConfiguration , type: Type) : PlayerFinder.PlayerWithDuration {
         if(AssetsAudioPlayerPlugin.displayLogs) {
             Log.d("PlayerImplem", "trying to open with exoplayer($type)")
         }
@@ -61,7 +61,7 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
                 onError = { t ->
                     configuration.onError?.invoke(t)
                 },
-                type = this.type
+                type = type
         )
 
         try {
@@ -109,6 +109,9 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     private var currentMediaPlayer: ExoPlayer? = null
     private var previousMediaPlayer: ExoPlayer? = null
     private var fadeOutTimerTask: TimerTask? = null
+    private var volume = 1f
+    private var isFadingOut:Boolean = false
+    private var timer : Timer? = null
 
     override var loopSingleAudio: Boolean
         get() = currentMediaPlayer?.repeatMode == REPEAT_MODE_ALL
@@ -121,12 +124,8 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     override val currentPositionMs: Long
         get() = currentMediaPlayer?.currentPosition ?: 0
 
-    private var volume = 1f
-    private var fadingOut:Boolean = false
-    private var timer : Timer? = null
-
     private fun startFadeOut() {
-        fadingOut = true
+        isFadingOut = true
         val fadeDuration:Long = 300 //The duration of the fade
         //The amount of time between volume changes. The smaller this is, the smoother the fade
         val fadeInterval:Long = 25
@@ -159,14 +158,14 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         previousMediaPlayer = null
         timer?.cancel()
         timer?.purge()
-        fadingOut = false
+        isFadingOut = false
     }
 
     override fun stop(crosFade:Boolean) {
         if(currentMediaPlayer == null){
             return
         }
-        if(fadingOut){
+        if(isFadingOut){
             cancelFadingOut()
         }
         previousMediaPlayer = currentMediaPlayer
@@ -184,7 +183,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     }
 
     override fun pause() {
-        if(fadingOut){
+        if(isFadingOut){
             cancelFadingOut()
         }
         currentMediaPlayer?.playWhenReady = false

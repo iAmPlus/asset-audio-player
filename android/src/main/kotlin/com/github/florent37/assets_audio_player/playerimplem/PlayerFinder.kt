@@ -6,7 +6,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 interface PlayerImplemTester {
     @Throws(Exception::class)
-    suspend fun open(configuration: PlayerFinderConfiguration): PlayerFinder.PlayerWithDuration
+    suspend fun open(configuration: PlayerFinderConfiguration , type: PlayerImplemTesterExoPlayer.Type): PlayerFinder.PlayerWithDuration
 }
 
 class PlayerFinderConfiguration(
@@ -27,41 +27,19 @@ object PlayerFinder {
     class PlayerWithDuration(val player: PlayerImplem, val duration: DurationMS)
     class NoPlayerFoundException(val why: AssetAudioPlayerThrowable? = null) : Throwable()
 
-    private val HLSExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.HLS)
-    private val DefaultExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.Default)
-    private val DASHExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.DASH)
-    private val SmoothStreamingExoPlayerTester = PlayerImplemTesterExoPlayer(PlayerImplemTesterExoPlayer.Type.SmoothStreaming)
+    private val ExoPlayerTester = PlayerImplemTesterExoPlayer
 
-    private var implemTester:PlayerImplemTester? = null
-
-    private val playerImpls = listOf<PlayerImplemTester>(
-            DefaultExoPlayerTester,
-            HLSExoPlayerTester,
-            DASHExoPlayerTester,
-            SmoothStreamingExoPlayerTester
+    private val playerImpls = listOf<PlayerImplemTesterExoPlayer.Type>(
+            PlayerImplemTesterExoPlayer.Type.Default,
+            PlayerImplemTesterExoPlayer.Type.DASH,
+            PlayerImplemTesterExoPlayer.Type.HLS,
+            PlayerImplemTesterExoPlayer.Type.SmoothStreaming
     )
 
-    private fun sortPlayerImpls(path: String?, originList: List<PlayerImplemTester>) : List<PlayerImplemTester> {
-        val editedList = originList.toMutableList()
-
-        path?.let {
-            //add others suggestions
-            if (path.endsWith(".m3u8")) {
-                editedList.moveToFirst(HLSExoPlayerTester)
-            }
-        }
-
-        return editedList
-    }
-
-    fun <T> MutableList<T>.moveToFirst(element: T) = this.apply {
-        remove(element)
-        add(0, element) //move to first
-    }
 
     @Throws(NoPlayerFoundException::class)
     private suspend fun _findWorkingPlayer(
-            remainingImpls: List<PlayerImplemTester>,
+            remainingImpls: List<PlayerImplemTesterExoPlayer.Type>,
             configuration: PlayerFinderConfiguration
     ): PlayerWithDuration {
         if (remainingImpls.isEmpty()) {
@@ -69,10 +47,9 @@ object PlayerFinder {
         }
         try {
             //try the first
-//            implemTester?.stop()
-            implemTester = remainingImpls.first()
-            val playerWithDuration = implemTester?.open(
-                    configuration = configuration
+            val playerWithDuration = ExoPlayerTester?.open(
+                    configuration = configuration,
+                    type = remainingImpls.first()
             )
             //if we're here : no exception, we can return it
             return playerWithDuration!!
@@ -94,10 +71,7 @@ object PlayerFinder {
     @Throws(NoPlayerFoundException::class)
     suspend fun findWorkingPlayer(configuration: PlayerFinderConfiguration): PlayerWithDuration {
         return _findWorkingPlayer(
-                remainingImpls= sortPlayerImpls(
-                        path= configuration.assetAudioPath,
-                        originList=playerImpls
-                ),
+                remainingImpls= playerImpls,
                 configuration= configuration
         )
     }
