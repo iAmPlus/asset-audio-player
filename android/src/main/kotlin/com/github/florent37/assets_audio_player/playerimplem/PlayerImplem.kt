@@ -6,11 +6,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 typealias DurationMS = Long
 
-abstract class PlayerImplem(
-        val onFinished: (() -> Unit),
-        val onBuffering: ((Boolean) -> Unit),
-        val onError: ((AssetAudioPlayerThrowable) -> Unit)
-) {
+abstract class PlayerImplem {
     abstract var loopSingleAudio: Boolean
     abstract val isPlaying: Boolean
     abstract val currentPositionMs: Long

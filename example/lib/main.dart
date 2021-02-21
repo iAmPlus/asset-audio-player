@@ -37,9 +37,31 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "http://mirrors.standaloneinstaller.com/audio-sample/wma/out.aac",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
       metas: Metas(
         id: "Pop",
+        title: "Pop",
+        artist: "Florent Champigny",
+        album: "PopAlbum",
+        image: MetasImage.network(
+            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
+      ),
+    ),
+    Audio.network(
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+      metas: Metas(
+        id: "Pop 1 ",
+        title: "Pop",
+        artist: "Florent Champigny",
+        album: "PopAlbum",
+        image: MetasImage.network(
+            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
+      ),
+    ),
+    Audio.network(
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+      metas: Metas(
+        id: "Pop 2",
         title: "Pop",
         artist: "Florent Champigny",
         album: "PopAlbum",
@@ -58,6 +80,7 @@ class _MyAppState extends State<MyApp> {
     _assetsAudioPlayer.getPlayLink = (audio) async {
       return audio;
     };
+    _assetsAudioPlayer.crossFade = true;
     _assetsAudioPlayer.updateUiColor = (audio) async {};
     _assetsAudioPlayer.onChange = () async {};
     _assetsAudioPlayer.onStop = () async {};

@@ -30,7 +30,7 @@ class IncompatibleException(val audioType: String, val type: PlayerImplemTesterE
 
 class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
 
-    private var mediaPlayer :PlayerImplemExoPlayer? = null
+    private var mediaPlayer :PlayerImplemExoPlayer? = PlayerImplemExoPlayer
 
     enum class Type {
         Default,
@@ -50,7 +50,7 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
             }
         }
 
-        this.mediaPlayer = PlayerImplemExoPlayer(
+        this.mediaPlayer?.configure(
                 onFinished = {
                     configuration.onFinished?.invoke()
                     //stop(pingListener = false)
@@ -87,34 +87,46 @@ class PlayerImplemTesterExoPlayer(private val type: Type) : PlayerImplemTester {
     }
 }
 
-class PlayerImplemExoPlayer(
-        onFinished: (() -> Unit),
-        onBuffering: ((Boolean) -> Unit),
-        onError: ((AssetAudioPlayerThrowable) -> Unit),
-        val type: PlayerImplemTesterExoPlayer.Type
-) : PlayerImplem(
-        onFinished = onFinished,
-        onBuffering = onBuffering,
-        onError = onError
-) {
+object PlayerImplemExoPlayer : PlayerImplem() {
 
-    private var mediaPlayer: ExoPlayer? = null
+    private var onFinished: (() -> Unit)? = null
+    private var onBuffering: ((Boolean) -> Unit)? = null
+    private var onError: ((AssetAudioPlayerThrowable) -> Unit)? = null
+    private var type: PlayerImplemTesterExoPlayer.Type? = null
+
+    fun configure(
+            onFinished: (() -> Unit),
+            onBuffering: ((Boolean) -> Unit),
+            onError: ((AssetAudioPlayerThrowable) -> Unit),
+            type: PlayerImplemTesterExoPlayer.Type
+    ){
+        this.onBuffering = onBuffering
+        this.onError = onError
+        this.onFinished = onFinished
+        this.type = type
+    }
+
+    private var currentMediaPlayer: ExoPlayer? = null
+    private var previousMediaPlayer: ExoPlayer? = null
     private var fadeOutTimerTask: TimerTask? = null
 
     override var loopSingleAudio: Boolean
-        get() = mediaPlayer?.repeatMode == REPEAT_MODE_ALL
+        get() = currentMediaPlayer?.repeatMode == REPEAT_MODE_ALL
         set(value) {
-            mediaPlayer?.repeatMode = if (value) REPEAT_MODE_ALL else REPEAT_MODE_OFF
+            currentMediaPlayer?.repeatMode = if (value) REPEAT_MODE_ALL else REPEAT_MODE_OFF
         }
 
     override val isPlaying: Boolean
-        get() = mediaPlayer?.isPlaying ?: false
+        get() = currentMediaPlayer?.isPlaying ?: false
     override val currentPositionMs: Long
-        get() = mediaPlayer?.currentPosition ?: 0
+        get() = currentMediaPlayer?.currentPosition ?: 0
 
     private var volume = 1f
+    private var fadingOut:Boolean = false
+    private var timer : Timer? = null
 
     private fun startFadeOut() {
+        fadingOut = true
         val fadeDuration:Long = 300 //The duration of the fade
         //The amount of time between volume changes. The smaller this is, the smoother the fade
         val fadeInterval:Long = 25
@@ -124,46 +136,58 @@ class PlayerImplemExoPlayer(
         val deltaVolume = maxVolume / numberOfSteps.toFloat()
 
         //Create a new Timer and Timer task to run the fading outside the main UI thread
-        val timer = Timer(true)
+        timer = Timer(true)
         fadeOutTimerTask  = object : TimerTask() {
             override fun run() {
                 fadeOutStep(deltaVolume) //Do a fade step
                 //Cancel and Purge the Timer if the desired volume has been reached
                 if (volume <= 0f) {
-                    mediaPlayer?.release()
-                    mediaPlayer = null
-                    timer.cancel()
-                    timer.purge()
+                    cancelFadingOut()
                 }
             }
         }
-        timer.schedule(fadeOutTimerTask, fadeInterval, fadeDuration)
+        timer?.schedule(fadeOutTimerTask, fadeInterval, fadeDuration)
     }
 
     private fun fadeOutStep(deltaVolume: Float) {
-        setVolume(volume)
+        previousMediaPlayer?.audioComponent?.volume = volume
         volume -= deltaVolume
     }
 
+    private fun cancelFadingOut(){
+        previousMediaPlayer?.release()
+        previousMediaPlayer = null
+        timer?.cancel()
+        timer?.purge()
+        fadingOut = false
+    }
+
     override fun stop(crosFade:Boolean) {
-        if(mediaPlayer == null){
+        if(currentMediaPlayer == null){
             return
         }
+        if(fadingOut){
+            cancelFadingOut()
+        }
+        previousMediaPlayer = currentMediaPlayer
         if(crosFade){
             volume = 1f
             startFadeOut()
         } else {
-            mediaPlayer?.release()
-            mediaPlayer = null
+            previousMediaPlayer?.release()
+            previousMediaPlayer = null
         }
     }
 
     override fun play() {
-        mediaPlayer?.playWhenReady = true
+        currentMediaPlayer?.playWhenReady = true
     }
 
     override fun pause() {
-        mediaPlayer?.playWhenReady = false
+        if(fadingOut){
+            cancelFadingOut()
+        }
+        currentMediaPlayer?.playWhenReady = false
     }
 
     private fun getDataSource(context: Context,
@@ -174,7 +198,7 @@ class PlayerImplemExoPlayer(
                               assetAudioPackage: String?
     ): MediaSource {
         try {
-            mediaPlayer?.stop()
+            currentMediaPlayer?.stop()
             if (audioType == Player.AUDIO_TYPE_NETWORK || audioType == Player.AUDIO_TYPE_LIVESTREAM) {
                 val uri = Uri.parse(assetAudioPath)
                 val userAgent = "assets_audio_player"
@@ -271,7 +295,7 @@ class PlayerImplemExoPlayer(
         var onThisMediaReady = false
 
         try {
-            mediaPlayer = SimpleExoPlayer.Builder(context)
+            currentMediaPlayer = SimpleExoPlayer.Builder(context)
                     .incrementBufferSize(audioType)
                     .build()
 
@@ -286,14 +310,14 @@ class PlayerImplemExoPlayer(
 
             var lastState: Int? = null
 
-            this.mediaPlayer?.addListener(object : com.google.android.exoplayer2.Player.EventListener {
+            this.currentMediaPlayer?.addListener(object : com.google.android.exoplayer2.Player.EventListener {
 
                 override fun onPlayerError(error: ExoPlaybackException) {
                     val errorMapped = mapError(error)
                     if (!onThisMediaReady) {
                         continuation.resumeWithException(errorMapped)
                     } else {
-                        onError(errorMapped)
+                        onError?.let { it(errorMapped) }
                     }
                 }
 
@@ -302,21 +326,21 @@ class PlayerImplemExoPlayer(
                         when (playbackState) {
                             ExoPlayer.STATE_ENDED -> {
                                 pause()
-                                onFinished.invoke()
-                                onBuffering.invoke(false)
+                                onFinished?.invoke()
+                                onBuffering?.invoke(false)
                             }
                             ExoPlayer.STATE_BUFFERING -> {
-                                onBuffering.invoke(true)
+                                onBuffering?.invoke(true)
                             }
                             ExoPlayer.STATE_READY -> {
-                                onBuffering.invoke(false)
+                                onBuffering?.invoke(false)
                                 if (!onThisMediaReady) {
                                     onThisMediaReady = true
                                     //retrieve duration in seconds
                                     if (audioType == Player.AUDIO_TYPE_LIVESTREAM) {
                                         continuation.resume(0) //no duration for livestream
                                     } else {
-                                        val duration = mediaPlayer?.duration ?: 0
+                                        val duration = currentMediaPlayer?.duration ?: 0
                                         val totalDurationMs = (duration.toLong())
 
                                         continuation.resume(totalDurationMs)
@@ -331,45 +355,45 @@ class PlayerImplemExoPlayer(
                 }
             })
 
-            mediaPlayer?.prepare(mediaSource)
+            currentMediaPlayer?.prepare(mediaSource)
         } catch (error: Throwable) {
             if (!onThisMediaReady) {
                 continuation.resumeWithException(error)
             } else {
-                onBuffering.invoke(false)
-                onError(mapError(error))
+                onBuffering?.invoke(false)
+                onError?.let { it(mapError(error)) }
             }
         }
     }
 
     override fun release() {
-        mediaPlayer?.release()
+        currentMediaPlayer?.release()
     }
 
     override fun seekTo(to: Long) {
-        mediaPlayer?.seekTo(to)
+        currentMediaPlayer?.seekTo(to)
     }
 
     override fun setVolume(volume: Float) {
-        mediaPlayer?.audioComponent?.volume = volume
+        currentMediaPlayer?.audioComponent?.volume = volume
     }
 
     override fun setPlaySpeed(playSpeed: Float) {
-        mediaPlayer?.setPlaybackParameters(PlaybackParameters(playSpeed))
+        currentMediaPlayer?.setPlaybackParameters(PlaybackParameters(playSpeed))
     }
 
     override fun getSessionId(listener: (Int) -> Unit) {
-        val id = mediaPlayer?.audioComponent?.audioSessionId?.takeIf { it != AUDIO_SESSION_ID_UNSET }
+        val id = currentMediaPlayer?.audioComponent?.audioSessionId?.takeIf { it != AUDIO_SESSION_ID_UNSET }
         if(id != null){
             listener(id)
         } else {
             val listener = object : AudioListener {
                 override fun onAudioSessionId(audioSessionId: Int) {
                     listener(audioSessionId)
-                    mediaPlayer?.audioComponent?.removeAudioListener(this)
+                    currentMediaPlayer?.audioComponent?.removeAudioListener(this)
                 }
             }
-            mediaPlayer?.audioComponent?.addAudioListener(listener)
+            currentMediaPlayer?.audioComponent?.addAudioListener(listener)
         }
         //return
     }

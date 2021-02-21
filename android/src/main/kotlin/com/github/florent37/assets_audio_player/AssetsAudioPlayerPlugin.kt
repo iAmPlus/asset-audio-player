@@ -457,7 +457,7 @@ class AssetsAudioPlayer(
                         return
                     }
                     val crossFade = args["cross_fade"] as? Boolean ?: false
-                    getOrCreatePlayer(id).stop(pingListener = false ,crossFade = crossFade)
+                    getOrCreatePlayer(id).stop(crossFade = crossFade)
                 }
             }
 
