@@ -526,7 +526,7 @@ class AssetsAudioPlayer(
                             audioFocusStrategy = audioFocusStrategy,
                             networkHeaders = networkHeaders,
                             context = context,
-                            crossFade = crossFade
+                            crossFadeValue = crossFade
                     )
                 } ?: run {
                     result.error("WRONG_FORMAT", "The specified argument must be an Map<*, Any>.", null)
