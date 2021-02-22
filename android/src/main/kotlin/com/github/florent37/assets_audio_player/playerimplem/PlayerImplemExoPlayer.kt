@@ -152,6 +152,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         currentMediaPlayer = null
         if(crosFade){
             volume = 1f
+            isFadingOut = true
             timerHandler = Handler()
             updater = Runnable {
                 run {
