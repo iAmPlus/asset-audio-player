@@ -232,15 +232,6 @@ class Player(
                 }
                 setVolume(0.0)
 
-                var mHandler: Handler = object : Handler(context.mainLooper) {
-                    override fun handleMessage(msg: Message) {
-                        fadeInStep(msg.obj as Float)
-                    }
-                }
-
-                val timer = Timer(true)
-
-
                 if (autoStart) {
                     play() //display notif inside
                 } else {
@@ -253,7 +244,7 @@ class Player(
                             fadeInStep(0.2F)
                             timerHandler.postDelayed(updater,1000);
                             if (fadeVolume >= 1f) {
-                            timerHandler.removeCallbacks(updater);
+                                timerHandler.removeCallbacks(updater);
                             }
                         }
 

@@ -109,10 +109,10 @@ object PlayerImplemExoPlayer : PlayerImplem() {
 
     private var currentMediaPlayer: SimpleExoPlayer? = null
     private var previousMediaPlayer: SimpleExoPlayer? = null
-    private var fadeOutTimerTask: TimerTask? = null
     private var volume = 1f
     private var isFadingOut:Boolean = false
-    private var timer : Timer? = null
+    private var updater: Runnable? = null
+    private var timerHandler:Handler? = null
 
     override var loopSingleAudio: Boolean
         get() = currentMediaPlayer?.repeatMode == REPEAT_MODE_ALL
@@ -125,6 +125,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     override val currentPositionMs: Long
         get() = currentMediaPlayer?.currentPosition ?: 0
 
+
     private fun fadeOutStep(deltaVolume: Float) {
         previousMediaPlayer?.audioComponent?.volume = volume
         volume -= deltaVolume
@@ -134,12 +135,10 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         previousMediaPlayer?.stop()
         previousMediaPlayer?.release()
         previousMediaPlayer = null
-        timer?.cancel()
-        timer?.purge()
+        timerHandler?.removeCallbacks(updater);
         isFadingOut = false
     }
 
-    private var updater: Runnable? = null
 
 
     override fun stop(crosFade:Boolean) {
@@ -153,19 +152,20 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         currentMediaPlayer = null
         if(crosFade){
             volume = 1f
-            val timerHandler = Handler()
+            timerHandler = Handler()
             updater = Runnable {
                 run {
                     fadeOutStep(0.2F)
-                    timerHandler.postDelayed(updater,1000);
+                    timerHandler?.postDelayed(updater,1000);
                     if (volume <= 0f) {
-                        timerHandler.removeCallbacks(updater);
+                        cancelFadingOut()
+                        timerHandler?.removeCallbacks(updater);
                     }
                 }
 
 
             }
-            timerHandler.post(updater)
+            timerHandler?.post(updater)
         } else {
             previousMediaPlayer?.stop()
             previousMediaPlayer?.release()
