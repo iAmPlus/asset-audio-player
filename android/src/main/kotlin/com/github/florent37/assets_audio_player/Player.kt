@@ -106,13 +106,13 @@ class Player(
 
                     if(_lastPositionMs != positionMs) {
                         // Send position (milliseconds) to the application.
-                            if(crossFade){
-                                if(positionMs + 5000 >= _durationMs && !crossFading){
-                                    onFinished?.invoke()
-                                    crossFading = true
-                                    return
-                                }
+                        if(crossFade){
+                            if(positionMs + 5000 >= _durationMs && !crossFading){
+                                onFinished?.invoke()
+                                crossFading = true
+                                return
                             }
+                        }
                         onPositionMSChanged?.invoke(positionMs)
                         _lastPositionMs = positionMs
                     }
@@ -157,37 +157,12 @@ class Player(
     }
     var fadeVolume = 0f
 
-    private fun startFadeIn(mHandler: Handler) {
-        fadeVolume = 0f
-        val fadeDuration:Long = 300 //The duration of the fade
-        //The amount of time between volume changes. The smaller this is, the smoother the fade
-        val fadeInterval:Long = 25
-        val maxVolume = 1 //The volume will increase from 0 to 1
-        val numberOfSteps = fadeDuration / fadeInterval //Calculate the number of fade steps
-        //Calculate by how much the volume changes each step
-        val deltaVolume = maxVolume / numberOfSteps.toFloat()
-
-        //Create a new Timer and Timer task to run the fading outside the main UI thread
-        val timer = Timer(true)
-        val fadeInTimerTask:TimerTask  = object : TimerTask() {
-
-            override fun run() {
-                fadeInStep(deltaVolume) //Do a fade step
-                mHandler.obtainMessage(1 ,deltaVolume).sendToTarget();
-                //Cancel and Purge the Timer if the desired volume has been reached
-                if (volume >= 1f) {
-                    timer.cancel()
-                    timer.purge()
-                }
-            }
-        }
-        timer.schedule(fadeInTimerTask, fadeInterval, fadeDuration)
-    }
-
     private fun fadeInStep(deltaVolume: Float)  {
         mediaPlayer?.setVolume(fadeVolume)
         fadeVolume += deltaVolume
     }
+
+    private var updater: Runnable? = null
 
     fun open(assetAudioPath: String?,
              assetAudioPackage: String?,
@@ -215,7 +190,7 @@ class Player(
         this.audioFocusStrategy = audioFocusStrategy
 
         _lastOpenedPath = assetAudioPath
-      
+
         GlobalScope.launch(Dispatchers.Main) {
             try {
                 playerWithDuration = PlayerFinder.findWorkingPlayer(
@@ -257,11 +232,14 @@ class Player(
                 }
                 setVolume(0.0)
 
-                var mHandler: Handler = object : Handler() {
+                var mHandler: Handler = object : Handler(context.mainLooper) {
                     override fun handleMessage(msg: Message) {
                         fadeInStep(msg.obj as Float)
                     }
                 }
+
+                val timer = Timer(true)
+
 
                 if (autoStart) {
                     play() //display notif inside
@@ -269,7 +247,19 @@ class Player(
                     updateNotif() //if pause, we need to display the notif
                 }
                 if(crossFade){
-                    startFadeIn(mHandler)
+                    val timerHandler = Handler()
+                     updater = Runnable {
+                        run {
+                            fadeInStep(0.2F)
+                            timerHandler.postDelayed(updater,1000);
+                            if (fadeVolume >= 1f) {
+                            timerHandler.removeCallbacks(updater);
+                            }
+                        }
+
+
+                    }
+                    timerHandler.post(updater)
                 } else {
                     setVolume(1.0)
                 }
@@ -340,7 +330,7 @@ class Player(
                             speed = this.playSpeed.toFloat(),
                             currentPositionMs = _positionMs
                     )
-        }
+                }
     }
 
     fun forceNotificationForGroup(
@@ -369,7 +359,7 @@ class Player(
             updateNotif()
         }
     }
-    
+
     private fun updateNotif(removeNotificationOnStop: Boolean = true) {
         this.audioMetas?.takeIf { this.displayNotification }?.let { audioMetas ->
             this.notificationSettings?.let { notificationSettings ->

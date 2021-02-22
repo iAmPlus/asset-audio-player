@@ -2,6 +2,7 @@ package com.github.florent37.assets_audio_player.playerimplem
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
 import android.util.Log
 import com.github.florent37.assets_audio_player.AssetAudioPlayerThrowable
 import com.github.florent37.assets_audio_player.AssetsAudioPlayerPlugin
@@ -106,8 +107,8 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         this.type = type
     }
 
-    private var currentMediaPlayer: ExoPlayer? = null
-    private var previousMediaPlayer: ExoPlayer? = null
+    private var currentMediaPlayer: SimpleExoPlayer? = null
+    private var previousMediaPlayer: SimpleExoPlayer? = null
     private var fadeOutTimerTask: TimerTask? = null
     private var volume = 1f
     private var isFadingOut:Boolean = false
@@ -124,30 +125,6 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     override val currentPositionMs: Long
         get() = currentMediaPlayer?.currentPosition ?: 0
 
-    private fun startFadeOut() {
-        isFadingOut = true
-        val fadeDuration:Long = 300 //The duration of the fade
-        //The amount of time between volume changes. The smaller this is, the smoother the fade
-        val fadeInterval:Long = 25
-        val maxVolume = 1 //The volume will increase from 0 to 1
-        val numberOfSteps = fadeDuration / fadeInterval //Calculate the number of fade steps
-        //Calculate by how much the volume changes each step
-        val deltaVolume = maxVolume / numberOfSteps.toFloat()
-
-        //Create a new Timer and Timer task to run the fading outside the main UI thread
-        timer = Timer(true)
-        fadeOutTimerTask  = object : TimerTask() {
-            override fun run() {
-                fadeOutStep(deltaVolume) //Do a fade step
-                //Cancel and Purge the Timer if the desired volume has been reached
-                if (volume <= 0f) {
-                    cancelFadingOut()
-                }
-            }
-        }
-        timer?.schedule(fadeOutTimerTask, fadeInterval, fadeDuration)
-    }
-
     private fun fadeOutStep(deltaVolume: Float) {
         previousMediaPlayer?.audioComponent?.volume = volume
         volume -= deltaVolume
@@ -162,6 +139,9 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         isFadingOut = false
     }
 
+    private var updater: Runnable? = null
+
+
     override fun stop(crosFade:Boolean) {
         if(currentMediaPlayer == null){
             return
@@ -173,7 +153,19 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         currentMediaPlayer = null
         if(crosFade){
             volume = 1f
-            startFadeOut()
+            val timerHandler = Handler()
+            updater = Runnable {
+                run {
+                    fadeOutStep(0.2F)
+                    timerHandler.postDelayed(updater,1000);
+                    if (volume <= 0f) {
+                        timerHandler.removeCallbacks(updater);
+                    }
+                }
+
+
+            }
+            timerHandler.post(updater)
         } else {
             previousMediaPlayer?.stop()
             previousMediaPlayer?.release()

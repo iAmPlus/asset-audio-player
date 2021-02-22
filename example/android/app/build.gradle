@@ -54,6 +54,10 @@ android {
             multiDexEnabled true
         }
 
+        profile {
+            multiDexEnabled true
+        }
+
         debug {
             multiDexEnabled true
         }
