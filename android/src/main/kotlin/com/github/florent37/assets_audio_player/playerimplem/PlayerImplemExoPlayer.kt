@@ -112,7 +112,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     private var volume = 1f
     private var isFadingOut:Boolean = false
     private var updater: Runnable? = null
-    private var timerHandler:Handler? = null
+    private val timerHandler:Handler = Handler()
 
     override var loopSingleAudio: Boolean
         get() = currentMediaPlayer?.repeatMode == REPEAT_MODE_ALL
@@ -153,11 +153,10 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         if(crosFade){
             volume = 1f
             isFadingOut = true
-            timerHandler = Handler()
             updater = Runnable {
                 run {
-                    fadeOutStep(0.2F)
-                    timerHandler?.postDelayed(updater,1000);
+                    fadeOutStep(0.05F)
+                    timerHandler?.postDelayed(updater,250);
                     if (volume <= 0f) {
                         cancelFadingOut()
                         timerHandler?.removeCallbacks(updater);

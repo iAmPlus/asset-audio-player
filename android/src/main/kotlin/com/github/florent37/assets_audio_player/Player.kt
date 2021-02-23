@@ -163,6 +163,7 @@ class Player(
     }
 
     private var updater: Runnable? = null
+    val timerHandler = Handler()
 
     fun open(assetAudioPath: String?,
              assetAudioPackage: String?,
@@ -238,11 +239,10 @@ class Player(
                     updateNotif() //if pause, we need to display the notif
                 }
                 if(crossFade){
-                    val timerHandler = Handler()
                      updater = Runnable {
                         run {
-                            fadeInStep(0.2F)
-                            timerHandler.postDelayed(updater,1000);
+                            fadeInStep(0.05F)
+                            timerHandler.postDelayed(updater,250);
                             if (fadeVolume >= 1f) {
                                 timerHandler.removeCallbacks(updater);
                             }
