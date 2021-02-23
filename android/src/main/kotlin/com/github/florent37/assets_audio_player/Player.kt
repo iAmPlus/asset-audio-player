@@ -162,8 +162,18 @@ class Player(
         fadeVolume += deltaVolume
     }
 
-    private var updater: Runnable? = null
-    val timerHandler = Handler()
+    private val timerHandler: Handler = Handler()
+
+    private var updater: Runnable = Runnable {
+        run {
+            if(fadeVolume >= 1f){
+                return@Runnable
+            }
+            fadeInStep(0.05F)
+            timerHandler.postDelayed(updater,250);
+        }
+    }
+
 
     fun open(assetAudioPath: String?,
              assetAudioPackage: String?,
@@ -232,24 +242,14 @@ class Player(
                     this@Player.seek(milliseconds = seek * 1L)
                 }
                 setVolume(0.0)
-
+                timerHandler.removeCallbacksAndMessages(updater);
+                fadeVolume = 0f
                 if (autoStart) {
                     play() //display notif inside
                 } else {
                     updateNotif() //if pause, we need to display the notif
                 }
                 if(crossFade){
-                     updater = Runnable {
-                        run {
-                            fadeInStep(0.05F)
-                            timerHandler.postDelayed(updater,250);
-                            if (fadeVolume >= 1f) {
-                                timerHandler.removeCallbacks(updater);
-                            }
-                        }
-
-
-                    }
                     timerHandler.post(updater)
                 } else {
                     setVolume(1.0)

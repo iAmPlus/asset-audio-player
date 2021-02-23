@@ -324,7 +324,6 @@ object PlayerImplemExoPlayer : PlayerImplem() {
                     if (lastState != playbackState) {
                         when (playbackState) {
                             ExoPlayer.STATE_ENDED -> {
-                                pause()
                                 onFinished?.invoke()
                                 onBuffering?.invoke(false)
                             }
