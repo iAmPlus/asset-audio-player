@@ -1606,7 +1606,7 @@ class _CurrentPlaylist {
   }
 
   void _shuffleAudios() {
-    for (var i = 0; i < this.playlist.audios.length; i++) {
+    for (var i = 0; i < this.playlist.audios.length - 1; i++) {
       int index;
       index = _shuffleNumbers();
       indexList.add(index);
