@@ -22,7 +22,6 @@ import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
 import com.google.android.exoplayer2.upstream.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import java.io.File
-import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -111,8 +110,17 @@ object PlayerImplemExoPlayer : PlayerImplem() {
     private var previousMediaPlayer: SimpleExoPlayer? = null
     private var volume = 1f
     private var isFadingOut:Boolean = false
-    private var updater: Runnable? = null
-    private val timerHandler:Handler = Handler()
+    private val fadeHandler:Handler = Handler()
+    private var updater: Runnable = Runnable {
+        run {
+            fadeOutStep(0.05F)
+            fadeHandler?.postDelayed(updater,250);
+            if (volume <= 0f) {
+                cancelFadingOut()
+                fadeHandler?.removeCallbacks(updater);
+            }
+        }
+    }
 
     override var loopSingleAudio: Boolean
         get() = currentMediaPlayer?.repeatMode == REPEAT_MODE_ALL
@@ -135,7 +143,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         previousMediaPlayer?.stop()
         previousMediaPlayer?.release()
         previousMediaPlayer = null
-        timerHandler?.removeCallbacks(updater);
+        fadeHandler?.removeCallbacks(updater);
         isFadingOut = false
     }
 
@@ -153,19 +161,7 @@ object PlayerImplemExoPlayer : PlayerImplem() {
         if(crosFade){
             volume = 1f
             isFadingOut = true
-            updater = Runnable {
-                run {
-                    fadeOutStep(0.05F)
-                    timerHandler?.postDelayed(updater,250);
-                    if (volume <= 0f) {
-                        cancelFadingOut()
-                        timerHandler?.removeCallbacks(updater);
-                    }
-                }
-
-
-            }
-            timerHandler?.post(updater)
+            fadeHandler?.post(updater)
         } else {
             previousMediaPlayer?.stop()
             previousMediaPlayer?.release()

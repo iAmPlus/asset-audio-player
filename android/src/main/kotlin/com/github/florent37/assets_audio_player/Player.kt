@@ -93,6 +93,17 @@ class Player(
     private var crossFading = false
     private var _lastPositionMs: Long? = null
     private var crossFade: Boolean = false
+    private val fadeHandler: Handler = Handler()
+
+    private var updater: Runnable = Runnable {
+        run {
+            if(fadeVolume >= 1f){
+                fadeHandler.removeCallbacksAndMessages(updater);
+            }
+            fadeInStep(0.05F)
+            fadeHandler.postDelayed(updater,250);
+        }
+    }
 
     private val updatePosition = object : Runnable {
         override fun run() {
@@ -160,18 +171,6 @@ class Player(
     private fun fadeInStep(deltaVolume: Float)  {
         mediaPlayer?.setVolume(fadeVolume)
         fadeVolume += deltaVolume
-    }
-
-    private val timerHandler: Handler = Handler()
-
-    private var updater: Runnable = Runnable {
-        run {
-            if(fadeVolume >= 1f){
-                return@Runnable
-            }
-            fadeInStep(0.05F)
-            timerHandler.postDelayed(updater,250);
-        }
     }
 
 
@@ -242,7 +241,6 @@ class Player(
                     this@Player.seek(milliseconds = seek * 1L)
                 }
                 setVolume(0.0)
-                timerHandler.removeCallbacksAndMessages(updater);
                 fadeVolume = 0f
                 if (autoStart) {
                     play() //display notif inside
@@ -250,7 +248,7 @@ class Player(
                     updateNotif() //if pause, we need to display the notif
                 }
                 if(crossFade){
-                    timerHandler.post(updater)
+                    fadeHandler.post(updater)
                 } else {
                     setVolume(1.0)
                 }
