@@ -80,10 +80,10 @@ class _MyAppState extends State<MyApp> {
     _assetsAudioPlayer.getPlayLink = (audio) async {
       return audio;
     };
-    _assetsAudioPlayer.crossFade = false;
+    // // _assetsAudioPlayer.crossFade = false;
     _assetsAudioPlayer.updateUiColor = (audio) async {};
-    _assetsAudioPlayer.onChange = () async {};
-    _assetsAudioPlayer.onStop = () async {};
+    // _assetsAudioPlayer.onChange = () async {};
+    // _assetsAudioPlayer.onStop = () async {};
     _subscriptions.add(_assetsAudioPlayer.playlistAudioFinished.listen((data) {
       print("playlistAudioFinished : $data");
     }));
