@@ -278,7 +278,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         //This isn't currently possible in iOS. Even just changing your category options to .MixWithOthers causes your nowPlayingInfo to be ignored.
         do {
             if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(.multiRoute, mode: .default, options: [.allowBluetooth, .allowAirPlay, .allowBluetoothA2DP])
+                try AVAudioSession.sharedInstance().setCategory(.multiRoute, mode: .default, options: [.allowBluetooth, .allowAirPlay])
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             } else {
@@ -521,7 +521,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             /* set session category and mode with options */
             if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(category, mode: .default, options: [.allowBluetooth, .allowAirPlay, .allowBluetoothA2DP])
+                try AVAudioSession.sharedInstance().setCategory(category, mode: .default, options: [.allowBluetooth, .allowAirPlay])
                 try AVAudioSession.sharedInstance().setActive(true)
             } else {
                 try AVAudioSession.sharedInstance().setCategory(category)
