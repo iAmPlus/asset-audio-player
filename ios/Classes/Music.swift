@@ -179,11 +179,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     #if os(iOS)
     func getAudioCategory(respectSilentMode: Bool, showNotification: Bool) ->  AVAudioSession.Category {
         if(showNotification) {
-            return AVAudioSession.Category.playback
+            return AVAudioSession.Category.multiRoute
         } else if(respectSilentMode) {
             return AVAudioSession.Category.soloAmbient
         } else {
-            return AVAudioSession.Category.playback
+            return AVAudioSession.Category.multiRoute
         }
     }
     #endif
@@ -278,11 +278,11 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         //This isn't currently possible in iOS. Even just changing your category options to .MixWithOthers causes your nowPlayingInfo to be ignored.
         do {
             if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
+                try AVAudioSession.sharedInstance().setCategory(.multiRoute, mode: .default, options: [.allowBluetooth, .allowAirPlay, .allowBluetoothA2DP])
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             } else {
-                try AVAudioSession.sharedInstance().setCategory(.playback, options: [])
+                try AVAudioSession.sharedInstance().setCategory(.multiRoute, options: [])
                 try AVAudioSession.sharedInstance().setActive(true)
                   UIApplication.shared.beginReceivingRemoteControlEvents()
             }
@@ -521,7 +521,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             
             /* set session category and mode with options */
             if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(category, mode: .default, options: [.defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
+                try AVAudioSession.sharedInstance().setCategory(category, mode: .default, options: [.allowBluetooth, .allowAirPlay, .allowBluetoothA2DP])
                 try AVAudioSession.sharedInstance().setActive(true)
             } else {
                 try AVAudioSession.sharedInstance().setCategory(category)
