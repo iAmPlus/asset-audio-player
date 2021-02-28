@@ -28,8 +28,8 @@ class NotificationService : Service() {
 
     companion object {
         const val NOTIFICATION_ID = 1
-        const val CHANNEL_ID = "assets_audio_player"
-        const val MEDIA_SESSION_TAG = "assets_audio_player"
+        const val CHANNEL_ID = "iamai_music_notification"
+        const val MEDIA_SESSION_TAG = "iamai_music_notification"
 
         const val EXTRA_PLAYER_ID = "playerId"
         const val EXTRA_NOTIFICATION_ACTION = "notificationAction"
