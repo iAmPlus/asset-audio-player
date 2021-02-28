@@ -308,7 +308,7 @@ class NotificationService : Service() {
                     "Foreground Service Channel",
                     android.app.NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "assets_audio_player"
+                description = "iamai_music_notification"
                 setShowBadge(false)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
