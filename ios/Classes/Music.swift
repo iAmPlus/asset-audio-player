@@ -282,16 +282,15 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                 if #available(iOS 10.0, *) {
                     try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
                     try AVAudioSession.sharedInstance().setActive(true)
-                      UIApplication.shared.beginReceivingRemoteControlEvents()
                 } else {
                     try AVAudioSession.sharedInstance().setCategory(.playback, options: [])
                     try AVAudioSession.sharedInstance().setActive(true)
-                      UIApplication.shared.beginReceivingRemoteControlEvents()
                 }
             } catch let error {
                 print(error)
             }
         }
+        UIApplication.shared.beginReceivingRemoteControlEvents()
        
     }
     
