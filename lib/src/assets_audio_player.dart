@@ -38,6 +38,7 @@ const _DEFAULT_RESPECT_SILENT_MODE = false;
 const _DEFAULT_SHOW_NOTIFICATION = false;
 const _DEFAULT_PLAY_IN_BACKGROUND = PlayInBackground.enabled;
 const _DEFAULT_PLAYER = "DEFAULT_PLAYER";
+const _DEFAULT_IOS_AUDIO_SESSION_CONFIGURATIONS = true;
 const _DEFAULT_NETWORK_SETTINGS = NetworkSettings();
 
 const METHOD_POSITION = "player.position";
@@ -192,6 +193,18 @@ class AssetsAudioPlayer {
 
   final String id;
   final NetworkSettings networkSettings = _DEFAULT_NETWORK_SETTINGS;
+
+  // Setting the IOS AvAudioSession configurations (Like SetCategory , SetActive). By default it enabled.
+  // Call it before playing any song.
+  bool _enableIOSDefaultAudioSessionConfiguration = _DEFAULT_IOS_AUDIO_SESSION_CONFIGURATIONS;
+  set enableIOSDefaultAudioSessionConfiguration(bool newValue) {
+    if(!Platform.isIOS) {
+      return;
+    }
+    _enableIOSDefaultAudioSessionConfiguration = newValue;
+    /* await */ _sendChannel.invokeMethod(
+        'enableIOSDefaultAudioSessionConfiguration', {"id": this.id, "isEnabled": _enableIOSDefaultAudioSessionConfiguration});
+  }
 
   set cachePathProvider(AssetsAudioPlayerCache newValue) {
     if (newValue != null) {
