@@ -523,7 +523,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             print("url: " + url.absoluteString)
           
             
-            print("isDefaultAudioConfigurationEnabled - \(isDefaultAudioConfigurationEnabled)")
+            print("Music isDefaultAudioConfigurationEnabled - \(isDefaultAudioConfigurationEnabled)")
             if(self.isDefaultAudioConfigurationEnabled) {
                 /* set session category and mode with options */
                 if #available(iOS 10.0, *) {
@@ -1402,6 +1402,38 @@ class Music : NSObject, FlutterPlugin {
                 self.getOrCreatePlayer(id: id).onAudioUpdated(path: path, audioMetas: audioMetas)
                 result(true)
                 
+            case "enableIOSDefaultAudioSessionConfiguration" :
+                guard let args = call.arguments as? NSDictionary else {
+                    result(FlutterError(
+                            code: "METHOD_CALL",
+                            message: call.method + " Arguments must be an NSDictionary",
+                            details: nil)
+                    )
+                    break
+                }
+                
+                guard let isEnabled = args["isEnabled"] as? Bool else {
+                    result(FlutterError(
+                            code: "METHOD_CALL",
+                            message: call.method + " Arguments[path] must be a Bool",
+                            details: nil)
+                    )
+                    break
+                }
+                
+                guard let id = args["id"] as? String else {
+                    result(FlutterError(
+                            code: "METHOD_CALL",
+                            message: call.method + " Arguments[id] must be a String",
+                            details: nil)
+                    )
+                    break
+                }
+                
+                
+                self.getOrCreatePlayer(id: id).isDefaultAudioConfigurationEnabled = isEnabled
+                break
+                
             case "open" :
                 guard let args = call.arguments as? NSDictionary else {
                     result(FlutterError(
@@ -1492,39 +1524,7 @@ class Music : NSObject, FlutterPlugin {
                         networkHeaders: networkHeaders,
                         result: result
                 )
-                
-            case "enableIOSDefaultAudioSessionConfiguration" :
-                guard let args = call.arguments as? NSDictionary else {
-                    result(FlutterError(
-                            code: "METHOD_CALL",
-                            message: call.method + " Arguments must be an NSDictionary",
-                            details: nil)
-                    )
-                    break
-                }
-                
-                guard let isEnabled = args["isEnabled"] as? Bool else {
-                    result(FlutterError(
-                            code: "METHOD_CALL",
-                            message: call.method + " Arguments[path] must be a Bool",
-                            details: nil)
-                    )
-                    break
-                }
-                
-                guard let id = args["id"] as? String else {
-                    result(FlutterError(
-                        code: "METHOD_CALL",
-                        message: call.method + " Arguments[id] must be a String",
-                        details: nil)
-                    )
-                    break
-                }
 
-                
-                self.getOrCreatePlayer(id: id).isDefaultAudioConfigurationEnabled = isEnabled
-                break
-                
             default:
                 result(FlutterMethodNotImplemented)
                 break
