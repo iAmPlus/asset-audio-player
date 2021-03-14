@@ -1,11 +1,9 @@
 package com.github.florent37.assets_audio_player
 
 import android.content.Context
-import android.content.Intent
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import com.github.florent37.assets_audio_player.headset.HeadsetStrategy
 import com.github.florent37.assets_audio_player.notification.AudioMetas
 import com.github.florent37.assets_audio_player.notification.NotificationManager
@@ -19,6 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -41,6 +40,7 @@ class Player(
         const val AUDIO_TYPE_FILE = "file"
         const val AUDIO_TYPE_ASSET = "asset"
     }
+
 
     private val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
@@ -89,8 +89,22 @@ class Player(
     private var _lastOpenedPath : String? = null
     private var audioMetas: AudioMetas? = null
     private var notificationSettings: NotificationSettings? = null
-
+    private var playerWithDuration: PlayerFinder.PlayerWithDuration? = null
+    private var crossFading = false
     private var _lastPositionMs: Long? = null
+    private var crossFade: Boolean = false
+    private val fadeHandler: Handler = Handler()
+
+    private var updater: Runnable = Runnable {
+        run {
+            if(fadeVolume >= 1f){
+                fadeHandler.removeCallbacksAndMessages(updater);
+            }
+            fadeInStep(0.05F)
+            fadeHandler.postDelayed(updater,250);
+        }
+    }
+
     private val updatePosition = object : Runnable {
         override fun run() {
             mediaPlayer?.let { mediaPlayer ->
@@ -103,6 +117,13 @@ class Player(
 
                     if(_lastPositionMs != positionMs) {
                         // Send position (milliseconds) to the application.
+                        if(crossFade){
+                            if(positionMs + 5000 >= _durationMs && !crossFading){
+                                onFinished?.invoke()
+                                crossFading = true
+                                return
+                            }
+                        }
                         onPositionMSChanged?.invoke(positionMs)
                         _lastPositionMs = positionMs
                     }
@@ -145,6 +166,13 @@ class Player(
             updateNotif()
         }
     }
+    var fadeVolume = 0f
+
+    private fun fadeInStep(deltaVolume: Float)  {
+        mediaPlayer?.setVolume(fadeVolume)
+        fadeVolume += deltaVolume
+    }
+
 
     fun open(assetAudioPath: String?,
              assetAudioPackage: String?,
@@ -161,14 +189,9 @@ class Player(
              audioFocusStrategy: AudioFocusStrategy,
              networkHeaders: Map<*, *>?,
              result: MethodChannel.Result,
-             context: Context
+             context: Context,
+             crossFadeValue: Boolean = true
     ) {
-        try {
-            stop(pingListener = false)
-        } catch (t: Throwable){
-            Log.e("assets audio player" , "player is already opening")
-        }
-
         this.displayNotification = displayNotification
         this.audioMetas = audioMetas
         this.notificationSettings = notificationSettings
@@ -177,51 +200,59 @@ class Player(
         this.audioFocusStrategy = audioFocusStrategy
 
         _lastOpenedPath = assetAudioPath
-      
+
         GlobalScope.launch(Dispatchers.Main) {
             try {
-                val playerWithDuration = PlayerFinder.findWorkingPlayer(
+                playerWithDuration = PlayerFinder.findWorkingPlayer(
                         PlayerFinderConfiguration(
-                        assetAudioPath = assetAudioPath,
-                        flutterAssets = flutterAssets,
-                        assetAudioPackage = assetAudioPackage,
-                        audioType = audioType,
-                        networkHeaders = networkHeaders,
-                        context = context,
-                        onFinished = {
-                            stopWhenCall.stop()
-                            onFinished?.invoke()
-                        },
-                        onPlaying = onPlaying,
-                        onBuffering = onBuffering,
-                        onError= onError
+                                assetAudioPath = assetAudioPath,
+                                flutterAssets = flutterAssets,
+                                assetAudioPackage = assetAudioPackage,
+                                audioType = audioType,
+                                networkHeaders = networkHeaders,
+                                context = context,
+                                onFinished = {
+                                    stopWhenCall.stop()
+                                    if (!crossFadeValue) {
+                                        onFinished?.invoke()
+                                    }
+                                },
+                                onPlaying = onPlaying,
+                                onBuffering = onBuffering,
+                                onError = onError
                         )
                 )
-
-                val durationMs = playerWithDuration.duration
-                mediaPlayer = playerWithDuration.player
+                val durationMs = playerWithDuration?.duration
+                mediaPlayer = playerWithDuration?.player
 
                 //here one open succeed
-                onReadyToPlay?.invoke(durationMs)
+                onReadyToPlay?.invoke(durationMs!!)
                 mediaPlayer?.getSessionId(listener = {
                     onSessionIdFound?.invoke(it)
                 })
-
+                crossFading = false
+                crossFade = crossFadeValue
                 _playingPath = assetAudioPath
-                _durationMs = durationMs
+                _durationMs = durationMs!!
 
-                setVolume(volume)
                 setPlaySpeed(playSpeed)
 
                 seek?.let {
                     this@Player.seek(milliseconds = seek * 1L)
                 }
-
+                setVolume(0.0)
+                fadeVolume = 0f
                 if (autoStart) {
                     play() //display notif inside
                 } else {
                     updateNotif() //if pause, we need to display the notif
                 }
+                if(crossFade){
+                    fadeHandler.post(updater)
+                } else {
+                    setVolume(1.0)
+                }
+
                 result.success(null)
             } catch (error: Throwable) {
                 error.printStackTrace()
@@ -237,15 +268,14 @@ class Player(
         }
     }
 
-    fun stop(pingListener: Boolean = true, removeNotification: Boolean = true) {
+    fun stop(pingListener: Boolean = true, removeNotification: Boolean = true, crossFade: Boolean = false) {
         mediaPlayer?.apply {
             // Reset duration and position.
             // handler.removeCallbacks(updatePosition);
             // channel.invokeMethod("player.duration", 0);
             onPositionMSChanged?.invoke(0)
 
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
+            mediaPlayer?.stop(crossFade = crossFade)
             onPlaying?.invoke(false)
             handler.removeCallbacks(updatePosition)
         }
@@ -253,12 +283,11 @@ class Player(
             forwardHandler!!.stop()
             forwardHandler = null
         }
-        Log.e("sahhar youcef" , "closing player")
         mediaPlayer = null
         onForwardRewind?.invoke(0.0)
         if (pingListener) { //action from user
             onStop?.invoke()
-            updateNotif(removeNotificationOnStop= removeNotification)
+            updateNotif(removeNotificationOnStop = removeNotification)
         }
     }
 
@@ -290,7 +319,7 @@ class Player(
                             speed = this.playSpeed.toFloat(),
                             currentPositionMs = _positionMs
                     )
-        }
+                }
     }
 
     fun forceNotificationForGroup(
@@ -319,7 +348,7 @@ class Player(
             updateNotif()
         }
     }
-    
+
     private fun updateNotif(removeNotificationOnStop: Boolean = true) {
         this.audioMetas?.takeIf { this.displayNotification }?.let { audioMetas ->
             this.notificationSettings?.let { notificationSettings ->
@@ -409,9 +438,7 @@ class Player(
                         else -> volume //AudioManager.RINGER_MODE_NORMAL
                     }
                 }
-
                 it.setVolume(v.toFloat())
-
                 onVolumeChanged?.invoke(this.volume) //only notify the setted volume, not the silent mode one
             }
         }
@@ -454,7 +481,7 @@ class Player(
                 StopWhenCall.AudioState.AUTHORIZED_TO_PLAY -> {
                     this.isEnabledToPlayPause = true //this one must be called before play/pause()
                     this.isEnabledToChangeVolume = true //this one must be called before play/pause()
-                    if(audioFocusStrategy.resumeAfterInterruption) {
+                    if (audioFocusStrategy.resumeAfterInterruption) {
                         wasPlayingBeforeEnablePlayChange?.let {
                             //phone call ended
                             if (it) {
@@ -495,9 +522,10 @@ class Player(
     fun onHeadsetPlugged(plugged: Boolean) {
         if(plugged){
             when(this.headsetStrategy){
-                HeadsetStrategy.pauseOnUnplug -> { /* do nothing */}
+                HeadsetStrategy.pauseOnUnplug -> { /* do nothing */
+                }
                 HeadsetStrategy.pauseOnUnplugPlayOnPlug -> {
-                    if(!isPlaying) {
+                    if (!isPlaying) {
                         this.onNotificationPlayOrPause?.invoke()
                     }
                 }
@@ -505,8 +533,8 @@ class Player(
             }
         } else {
             when(this.headsetStrategy){
-                HeadsetStrategy.pauseOnUnplug, HeadsetStrategy.pauseOnUnplugPlayOnPlug  -> {
-                    if(isPlaying) {
+                HeadsetStrategy.pauseOnUnplug, HeadsetStrategy.pauseOnUnplugPlayOnPlug -> {
+                    if (isPlaying) {
                         this.onNotificationPlayOrPause?.invoke()
                     }
                 }

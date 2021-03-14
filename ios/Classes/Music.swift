@@ -26,6 +26,7 @@ struct NotificationSettings : Equatable {
         self.playPauseEnabled = true
         self.prevEnabled = true
         self.seekBarEnabled = true
+
     }
     
     init(nextEnabled: Bool, playPauseEnabled: Bool, prevEnabled: Bool, seekBarEnabled: Bool) {

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'player/PlayingControls.dart';
 import 'player/PositionSeekWidget.dart';
@@ -15,13 +14,7 @@ void main() {
   });
 
   runApp(
-    NeumorphicTheme(
-      theme: NeumorphicThemeData(
-        intensity: 0.8,
-        lightSource: LightSource.topLeft,
-      ),
-      child: MyApp(),
-    ),
+    MyApp(),
   );
 }
 
@@ -32,29 +25,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final audios = <Audio>[
-    Audio.network(
-      "https://anghamipreview.akamaized.net/30sec/30S_27_8906035373770_01_001_ISRC_INT202002543_MD5_f4b25751d23e4927426a7b473a7c1877.m4a",
-      metas: Metas(
-        id: "Online",
-        title: "Online",
-        artist: "Florent Champigny",
-        album: "OnlineAlbum",
-        // image: MetasImage.network("https://www.google.com")
-        image: MetasImage.network(
-            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
-      ),
-    ),
-    Audio.network(
-      null,
-      metas: Metas(
-        id: "Electronics",
-        title: "Electronic",
-        artist: "Florent Champigny",
-        album: "ElectronicAlbum",
-        image: MetasImage.network(
-            "https://i.ytimg.com/vi/nVZNy0ybegI/maxresdefault.jpg"),
-      ),
-    ),
     Audio.network(
       "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
       metas: Metas(
@@ -67,10 +37,10 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "https://logger-dev.theori.iamplus.services/?user_id=Sahhar&query=&intent=&start=&end=",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
       metas: Metas(
         id: "Pop",
-        title: "Pop 1 logger",
+        title: "Pop",
         artist: "Florent Champigny",
         album: "PopAlbum",
         image: MetasImage.network(
@@ -78,10 +48,10 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "https:\/\/anghamiaudio.akamaized.net\/mp43\/24\/USRC11601486_A10328E0009826304X_MD5_f0b89c7243996ea06aaea2d6958d777f.m4a?anghakamitoken=st=1611317242~exp=1611317722~acl=*~hmac=5d589c2ec1e49c25483ec8a36e325685ad53b79c97319e442363c1bd88fb963b",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
       metas: Metas(
-        id: "Pop",
-        title: "Pop 2 ",
+        id: "Pop 1 ",
+        title: "Pop",
         artist: "Florent Champigny",
         album: "PopAlbum",
         image: MetasImage.network(
@@ -89,20 +59,9 @@ class _MyAppState extends State<MyApp> {
       ),
     ),
     Audio.network(
-      "https://anghamiaudio.akamaized.net/mp43/24/USRC11601486_A10328E0009826304X_MD5_f0b89c7243996ea06aaea2d6958d777f.m4a",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
       metas: Metas(
-        id: "Pop",
-        title: "Pop 3",
-        artist: "Florent Champigny",
-        album: "PopAlbum",
-        image: MetasImage.network(
-            "https://image.shutterstock.com/image-vector/pop-music-text-art-colorful-600w-515538502.jpg"),
-      ),
-    ),
-    Audio.network(
-      "http://mirrors.standaloneinstaller.com/audio-sample/wma/out.aac",
-      metas: Metas(
-        id: "Pop",
+        id: "Pop 2",
         title: "Pop",
         artist: "Florent Champigny",
         album: "PopAlbum",
@@ -118,9 +77,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _assetsAudioPlayer.onPlay = (audio) async {
+    _assetsAudioPlayer.getPlayLink = (audio) async {
       return audio;
     };
+    _assetsAudioPlayer.crossFade = false;
+    _assetsAudioPlayer.updateUiColor = (audio) async {};
     _assetsAudioPlayer.onChange = () async {};
     _assetsAudioPlayer.onStop = () async {};
     _subscriptions.add(_assetsAudioPlayer.playlistAudioFinished.listen((data) {
@@ -151,7 +112,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: NeumorphicTheme.baseColor(context),
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -173,28 +133,20 @@ class _MyAppState extends State<MyApp> {
                                 find(this.audios, playing.audio.assetAudioPath);
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Neumorphic(
-                                style: NeumorphicStyle(
-                                  depth: 8,
-                                  surfaceIntensity: 1,
-                                  shape: NeumorphicShape.concave,
-                                  boxShape: NeumorphicBoxShape.circle(),
-                                ),
-                                child: myAudio.metas.image.type ==
-                                        ImageType.network
-                                    ? Image.network(
-                                        myAudio.metas.image.path,
-                                        height: 150,
-                                        width: 150,
-                                        fit: BoxFit.contain,
-                                      )
-                                    : Image.asset(
-                                        myAudio.metas.image.path,
-                                        height: 150,
-                                        width: 150,
-                                        fit: BoxFit.contain,
-                                      ),
-                              ),
+                              child:
+                                  myAudio.metas.image.type == ImageType.network
+                                      ? Image.network(
+                                          myAudio.metas.image.path,
+                                          height: 150,
+                                          width: 150,
+                                          fit: BoxFit.contain,
+                                        )
+                                      : Image.asset(
+                                          myAudio.metas.image.path,
+                                          height: 150,
+                                          width: 150,
+                                          fit: BoxFit.contain,
+                                        ),
                             );
                           }
                           return SizedBox();
@@ -202,12 +154,8 @@ class _MyAppState extends State<MyApp> {
                       ),
                       Align(
                         alignment: Alignment.topRight,
-                        child: NeumorphicButton(
-                          style: NeumorphicStyle(
-                            boxShape: NeumorphicBoxShape.circle(),
-                          ),
+                        child: MaterialButton(
                           padding: EdgeInsets.all(18),
-                          margin: EdgeInsets.all(18),
                           onPressed: () {
                             AssetsAudioPlayer.playAndForget(
                                 Audio("assets/audios/horn.mp3"));
@@ -282,7 +230,7 @@ class _MyAppState extends State<MyApp> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  NeumorphicButton(
+                                  MaterialButton(
                                     child: Text("-10"),
                                     onPressed: () {
                                       _assetsAudioPlayer
@@ -292,7 +240,7 @@ class _MyAppState extends State<MyApp> {
                                   SizedBox(
                                     width: 12,
                                   ),
-                                  NeumorphicButton(
+                                  MaterialButton(
                                     child: Text("+10"),
                                     onPressed: () {
                                       _assetsAudioPlayer

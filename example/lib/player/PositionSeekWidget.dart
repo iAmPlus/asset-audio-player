@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 class PositionSeekWidget extends StatefulWidget {
   final Duration currentPosition;
