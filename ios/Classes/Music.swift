@@ -116,9 +116,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     var _loopSingleAudio = false
     var isLiveStream: Bool = false
     
-    var secondaryPlayer: AVPlayer?
+    var secondaryPlayer: AVQueuePlayer?
     let crossFadetimeInSeconds: Double = 5.0
-    
+    var isAlreadyCrossFading: Bool = false
+
     init(channel: FlutterMethodChannel, registrar: FlutterPluginRegistrar) {
         self.channel = channel
         self.registrar = registrar
@@ -507,14 +508,18 @@ public class Player : NSObject, AVAudioPlayerDelegate {
               isCrossFadeEnabled: Bool,
               result: @escaping FlutterResult
     ){
-        self.stop()
+        self.isCrossFadeEnabled = isCrossFadeEnabled
+
+        if(!isCrossFadeEnabled) {
+            self.stop()
+        }
+       
         guard let url = self.getUrlByType(path: assetPath, audioType: audioType, assetPackage: assetPackage) else {
             self.setBuffering(false)
             self.onError(AssetAudioPlayerError(type: "PLAY_ERROR", message: "resource not found \(assetPath)"))
             return
         }
          
-        self.isCrossFadeEnabled = isCrossFadeEnabled        
         do {
             #if os(iOS)
             let category = getAudioCategory(respectSilentMode: respectSilentMode, showNotification: displayNotification)
@@ -867,8 +872,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
         self.nowPlayingInfo.removeAll()
         #endif
         self.player = nil
-       
-        NotificationCenter.default.addObserver(self, selector: #selector(self.secondaryPlayerDidFinishPlaying(note:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.secondaryPlayer?.currentItem)
     }
     
     func play(){
@@ -954,7 +957,7 @@ public class Player : NSObject, AVAudioPlayerDelegate {
                     #endif
                 }
                
-                if(isCrossFadeEnabled  && _currentTime + (crossFadetimeInSeconds * 1000) >= self.currentSongDurationMs) {
+                if(isCrossFadeEnabled  && (_currentTime + (crossFadetimeInSeconds * 1000)) >= self.currentSongDurationMs && !isAlreadyCrossFading) {
                     self.handleCrossfading()
                 }
             }
@@ -962,30 +965,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     }
     
     func handleCrossfading() {
-        let targetTime: CMTime = CMTimeMakeWithSeconds(Double(_currentTime) / 1000.0, preferredTimescale: 1)
-       
-        if let currentItem = self.player?.currentItem {
-            //Let this code after deinit methods
-            let copy = AVPlayerItem(asset: currentItem.asset)
-            self.secondaryPlayer = AVPlayer(playerItem: copy)
-            
-            self.secondaryPlayer?.volume = self.player?.volume ?? 1
-            
-            playing = false
-            self.channel.invokeMethod(Music.METHOD_FINISHED, arguments: true)
-            self._deinit()
-        }
-    
-        self.setFadeInOrOut(isStartingSong: false, previousVolume: self.secondaryPlayer?.volume ?? 1, startTime: targetTime)
-        self.secondaryPlayer?.seek(to:targetTime)
-        if #available(iOS 10.0, *) {
-            self.secondaryPlayer?.playImmediately(atRate: self.rate)
-        } else {
-            self.secondaryPlayer?.play()
-            self.secondaryPlayer?.rate = self.rate
-        }
+        isAlreadyCrossFading = true
+        self.secondaryPlayer =  self.player
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.secondaryPlayerDidFinishPlaying(note:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.secondaryPlayer?.currentItem)
+        self.channel.invokeMethod(Music.METHOD_FINISHED, arguments: true)
+
+        let targetTime: CMTime = CMTimeMakeWithSeconds(Double(_currentTime) / 1000.0, preferredTimescale: 1)
+        self.setFadeInOrOut(isStartingSong: false, previousVolume:  self.secondaryPlayer?.volume ?? 1, startTime: targetTime)
     }
     
     func setFadeInOrOut(isStartingSong: Bool, previousVolume:Float, startTime : CMTime) {
@@ -1036,6 +1022,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     var currentTimeTimer: Timer?
     
     @objc public func playerDidFinishPlaying(note: NSNotification){
+
+        if(isCrossFadeEnabled) {
+            self.isAlreadyCrossFading = false
+            self.secondaryPlayer = nil
+            return
+        }
+        
         if(self._loopSingleAudio){
             self.player?.seek(to: CMTime.zero)
             self.player?.play()
@@ -1044,13 +1037,6 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             self.channel.invokeMethod(Music.METHOD_FINISHED, arguments: true)
             self._deinit()
         }
-    }
-    
-    @objc public func secondaryPlayerDidFinishPlaying(note: NSNotification){
-        NotificationCenter.default.removeObserver(self,
-                                                  name: NSNotification.Name.AVPlayerItemDidPlayToEndTime,
-                                                  object: secondaryPlayer?.currentItem)
-        secondaryPlayer = nil
     }
     
     @objc func volumeChanged(notification: NSNotification){
@@ -1523,7 +1509,7 @@ class Music : NSObject, FlutterPlugin {
                     break
                 }
                 self.getOrCreatePlayer(id: id).isCrossFadeEnabled = isCrossfade
-             break
+            break
                 
             case "open" :
                 guard let args = call.arguments as? NSDictionary else {
