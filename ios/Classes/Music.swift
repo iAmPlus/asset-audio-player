@@ -769,10 +769,10 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             if options.contains(.shouldResume) {
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
                    // Interruption ended. Playback should resume.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.play()
-                    print("handleInterruption :- Play")
-                }
+                // DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                //     self.play()
+                //     print("handleInterruption :- Play")
+                // }
                 }
                 // Interruption ended. Playback should resume.
             } else {
