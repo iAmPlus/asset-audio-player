@@ -1065,11 +1065,7 @@ class AssetsAudioPlayer {
     final currentAudio = _lastOpenedAssetsAudio;
     if (audioInput != null) {
       _respectSilentMode = respectSilentMode;
-      if (Platform.isAndroid) {
-        _crossFade(crossFade: crossFade);
-      } else {
-        pause();
-      }
+      _crossFade(crossFade: crossFade);
       final current = Playing(
         audio: PlayingAudio(
           audio: audioInput,
