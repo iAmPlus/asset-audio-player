@@ -745,47 +745,49 @@ public class Player : NSObject, AVAudioPlayerDelegate {
     }
     
     @objc func handleInterruption(notification: Notification) {
-        #if os(iOS)
-        if(!self.audioFocusStrategy.request) {
-            return
-        }
-        
-        guard let userInfo = notification.userInfo,
-            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+        if #available(iOS 10.0, *) {
+            #if os(iOS)
+            if(!self.audioFocusStrategy.request) {
                 return
-        }
-        
-        // Switch over the interruption type.
-        switch type {
-        case .began:
-            self.pause();
-            print("handleInterruption :- Interruption starts. Status pause")
-            break
-        case .ended:
-            // An interruption ended. Resume playback, if appropriate.
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if options.contains(.shouldResume) {
-                if(self.audioFocusStrategy.resumeAfterInterruption) {
-                    if(self.player?.timeControlStatus == .playing) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                        self.play()
-                                        print("handleInterruption :- Play")
-                                    }
-                }   
-               
-                }
-                // Interruption ended. Playback should resume.
-            } else {
-                // // Interruption ended. Playback should not resume.
-                self.pause()
-                print("handleInterruption :- Interruption ended. Playback should not resume")
             }
-            break
-        default: ()
+            
+            guard let userInfo = notification.userInfo,
+                  let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+                  let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+                return
+            }
+            
+            // Switch over the interruption type.
+            switch type {
+            case .began:
+                self.pause();
+                print("handleInterruption :- Interruption starts. Status pause")
+                break
+            case .ended:
+                // An interruption ended. Resume playback, if appropriate.
+                guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) {
+                    if(self.audioFocusStrategy.resumeAfterInterruption) {
+                        if(self.player?.timeControlStatus == .playing) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                self.play()
+                                print("handleInterruption :- Play")
+                            }
+                        }
+                        
+                    }
+                    // Interruption ended. Playback should resume.
+                } else {
+                    // // Interruption ended. Playback should not resume.
+                    self.pause()
+                    print("handleInterruption :- Interruption ended. Playback should not resume")
+                }
+                break
+            default: ()
+            }
+            #endif
         }
-        #endif
     }
     
     private func setBuffering(_ value: Bool){
