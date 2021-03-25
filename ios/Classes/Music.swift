@@ -768,11 +768,13 @@ public class Player : NSObject, AVAudioPlayerDelegate {
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
                 if(self.audioFocusStrategy.resumeAfterInterruption) {
-                   // Interruption ended. Playback should resume.
-                // DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                //     self.play()
-                //     print("handleInterruption :- Play")
-                // }
+                    if(self.rate != 0 && self.player != nil) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                        self.play()
+                                        print("handleInterruption :- Play")
+                                    }
+                }   
+               
                 }
                 // Interruption ended. Playback should resume.
             } else {
