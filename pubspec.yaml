@@ -12,11 +12,11 @@ environment:
 dependencies:
   flutter:
       sdk: flutter
-  rxdart: ^0.24.1
-  uuid: ^2.2.2
-  http: ^0.12.2 #to download / cache network files
-  path_provider: ^1.6.27 # removed this because it cancel flutter/android/ios on pub.dev path_provider: ^1.6.10
-  async: ^2.4.2
+  rxdart: ^0.26.0
+  uuid: 3.0.4
+  http: ^0.13.3 #to download / cache network files
+  path_provider: ^2.0.2 # removed this because it cancel flutter/android/ios on pub.dev path_provider: ^1.6.10
+  async: ^2.6.1
 
 
   # The design on https://flutter.dev/go/federated-plugins was to leave
