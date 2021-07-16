@@ -13,7 +13,7 @@ dependencies:
   rxdart: ^0.26.0
   # for local file test
   dio: ^4.0.0
-  path_provider: ^2.0.2 # removed this because it cancel flutter/android/ios on pub.dev path_provider: ^1.6.10
+  path_provider: ^2.0.2
 
   http: ^0.13.3 #to download / cache network files
   provider: ^5.0.0
