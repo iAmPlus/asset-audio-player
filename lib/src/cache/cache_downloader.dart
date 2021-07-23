@@ -6,18 +6,18 @@ import 'package:flutter/foundation.dart';
 
 class CacheDownloadInfos {
   const CacheDownloadInfos({
-    required this.received,
-    required this.total,
+    @required this.received,
+    @required this.total,
   });
 
   final int received;
-  final int? total;
+  final int total;
 
   double get percent {
     if (total == 0)
       return 0;
     else
-      return received / total!;
+      return received / total;
   }
 }
 
@@ -27,11 +27,11 @@ class _DownloadWaiter {
   _DownloadWaiter({this.downloadInfosListener});
 
   final Completer completer = Completer();
-  final CacheDownloadListener? downloadInfosListener;
+  final CacheDownloadListener downloadInfosListener;
 
   void pingInfos(CacheDownloadInfos infos) {
     if (downloadInfosListener != null) {
-      downloadInfosListener!(infos);
+      downloadInfosListener(infos);
     }
   }
 }
@@ -44,16 +44,16 @@ class CacheDownloader {
   }
 
   Future<void> downloadAndSave({
-    required String url,
-    required String savePath,
-    Map<String, dynamic>? headers,
+    String url,
+    String savePath,
+    Map<String, dynamic> headers,
   }) async {
     final http.Client client = http.Client();
     final uri = Uri.parse(url);
     final http.Request request = http.Request('GET', uri);
 
     if (headers != null && !headers.isEmpty) {
-      request.headers.addAll(headers as Map<String, String>);
+      request.headers.addAll(headers);
     }
 
     request.followRedirects = false;
@@ -102,6 +102,6 @@ class CacheDownloader {
   Future<String> wait(CacheDownloadListener downloadListener) async {
     final waiter = _DownloadWaiter(downloadInfosListener: downloadListener);
     this._waiters.add(waiter);
-    return await (waiter.completer.future as FutureOr<String>);
+    return await waiter.completer.future;
   }
 }

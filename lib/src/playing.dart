@@ -20,17 +20,17 @@ import 'playable.dart';
 @immutable
 class PlayingAudio {
   ///the opened asset
-  final Audio? audio;
+  final Audio audio;
 
   ///the current song's total duration
-  final Duration? duration;
+  final Duration duration;
 
   const PlayingAudio({
     this.audio,
     this.duration = Duration.zero,
   });
 
-  String? get assetAudioPath => audio!.path;
+  String get assetAudioPath => audio.path;
 
   @override
   String toString() {
@@ -51,9 +51,9 @@ class PlayingAudio {
 
 @immutable
 class ReadingPlaylist {
-  final List<Audio>? audios;
-  final int? nextIndex;
-  final int? previousIndex;
+  final List<Audio> audios;
+  final int nextIndex;
+  final int previousIndex;
   final int currentIndex;
 
   const ReadingPlaylist({
@@ -63,7 +63,7 @@ class ReadingPlaylist {
     this.currentIndex = 0,
   });
 
-  Audio get current => audios![currentIndex];
+  Audio get current => audios[currentIndex];
 
   @override
   String toString() {
@@ -98,10 +98,10 @@ class Playing {
   final ReadingPlaylist playlist;
 
   Playing({
-    required this.audio,
-    required this.index,
-    required this.hasNext,
-    required this.playlist,
+    @required this.audio,
+    @required this.index,
+    @required this.hasNext,
+    @required this.playlist,
   });
 
   @override
@@ -126,31 +126,31 @@ class Playing {
 
 @immutable
 class RealtimePlayingInfos {
-  final String? playerId;
+  final String playerId;
 
-  final Playing? current;
+  final Playing current;
   final Duration duration;
-  final Duration? currentPosition;
-  final double? volume;
-  final bool? isPlaying;
-  final LoopMode? loopMode;
-  final bool? isBuffering;
-  final bool? isShuffling;
+  final Duration currentPosition;
+  final double volume;
+  final bool isPlaying;
+  final LoopMode loopMode;
+  final bool isBuffering;
+  final bool isShuffling;
 
   RealtimePlayingInfos({
-    required this.playerId,
-    required this.current,
-    required this.currentPosition,
-    required this.volume,
-    required this.isPlaying,
-    required this.loopMode,
-    required this.isBuffering,
+    @required this.playerId,
+    @required this.current,
+    @required this.currentPosition,
+    @required this.volume,
+    @required this.isPlaying,
+    @required this.loopMode,
+    @required this.isBuffering,
     this.isShuffling,
   }) : this.duration = current?.audio?.duration ?? Duration();
 
   double get playingPercent => this.duration.inMilliseconds == 0
       ? 0
-      : this.currentPosition!.inMilliseconds / this.duration.inMilliseconds;
+      : this.currentPosition.inMilliseconds / this.duration.inMilliseconds;
 
   @override
   bool operator ==(Object other) =>

@@ -5,15 +5,15 @@ import 'package:uuid/uuid.dart';
 import 'utils.dart';
 
 class Playable {
-  final Set<PlayerEditor?> _currentlyOpenedIn = Set();
+  final Set<PlayerEditor> _currentlyOpenedIn = Set();
 
   Set<PlayerEditor> get currentlyOpenedIn => Set.from(_currentlyOpenedIn);
 
-  void setCurrentlyOpenedIn(PlayerEditor? player) {
+  void setCurrentlyOpenedIn(PlayerEditor player) {
     _currentlyOpenedIn.add(player);
   }
 
-  void removeCurrentlyOpenedIn(PlayerEditor? player) {
+  void removeCurrentlyOpenedIn(PlayerEditor player) {
     _currentlyOpenedIn.remove(player);
   }
 }
@@ -25,7 +25,7 @@ enum AudioType {
   asset,
 }
 
-String? audioTypeDescription(AudioType? audioType) {
+String audioTypeDescription(AudioType audioType) {
   switch (audioType) {
     case AudioType.network:
       return "network";
@@ -45,7 +45,7 @@ enum ImageType {
   asset,
 }
 
-String? imageTypeDescription(ImageType imageType) {
+String imageTypeDescription(ImageType imageType) {
   switch (imageType) {
     case ImageType.network:
       return "network";
@@ -60,7 +60,7 @@ String? imageTypeDescription(ImageType imageType) {
 @immutable
 class MetasImage {
   final String path;
-  final String? package;
+  final String package;
   final ImageType type;
 
   const MetasImage.network(this.path)
@@ -90,18 +90,18 @@ class MetasImage {
 }
 
 class Metas {
-  String? id;
-  final String? title;
-  final String? artist;
-  final String? album;
-  final String? artistId;
-  final String? albumId;
-  final String? hexColor;
-  final String? languageId;
-  final Map<String, dynamic>? extra;
-  final MetasImage? image;
-  final MetasImage? onImageLoadFail;
-  final Duration? duration;
+  String id;
+  final String title;
+  final String artist;
+  final String album;
+  final String artistId;
+  final String albumId;
+  final String hexColor;
+  final String languageId;
+  final Map<String, dynamic> extra;
+  final MetasImage image;
+  final MetasImage onImageLoadFail;
+  final Duration duration;
 
   Metas(
       {this.hexColor,
@@ -148,16 +148,16 @@ class Metas {
       onImageLoadFail.hashCode;
 
   Metas copyWith({
-    String? id,
-    String? title,
-    String? artist,
-    String? album,
-    String? artistId,
-    String? albumId,
-    Duration? duration,
-    Map<String, dynamic>? extra,
-    MetasImage? image,
-    MetasImage? onImageLoadFail,
+    String id,
+    String title,
+    String artist,
+    String album,
+    String artistId,
+    String albumId,
+    Duration duration,
+    Map<String, dynamic> extra,
+    MetasImage image,
+    MetasImage onImageLoadFail,
   }) {
     return new Metas(
       id: id ?? this.id,
@@ -175,17 +175,17 @@ class Metas {
 }
 
 class Audio extends Playable {
-  final String? path;
-  final String? package;
-  final AudioType? audioType;
-  Metas? _metas;
-  Map<String, dynamic>? _networkHeaders;
-  final bool? cached; //download audio then play it
-  final double? playSpeed;
+  final String path;
+  final String package;
+  final AudioType audioType;
+  Metas _metas;
+  Map<String, dynamic> _networkHeaders;
+  final bool cached; //download audio then play it
+  final double playSpeed;
 
-  Metas? get metas => _metas;
+  Metas get metas => _metas;
 
-  Map<String, dynamic>? get networkHeaders => _networkHeaders;
+  Map<String, dynamic> get networkHeaders => _networkHeaders;
 
   Audio._({
     this.path,
@@ -193,14 +193,14 @@ class Audio extends Playable {
     this.audioType,
     this.cached,
     this.playSpeed,
-    Map<String, dynamic>? headers,
-    Metas? metas,
+    Map<String, dynamic> headers,
+    Metas metas,
   })  : _metas = metas,
         _networkHeaders = headers;
 
   Audio(
     this.path, {
-    Metas? metas,
+    Metas metas,
     this.package,
     this.playSpeed,
   })  : audioType = AudioType.asset,
@@ -210,7 +210,7 @@ class Audio extends Playable {
 
   Audio.file(
     this.path, {
-    Metas? metas,
+    Metas metas,
     this.playSpeed,
   })  : audioType = AudioType.file,
         package = null,
@@ -220,8 +220,8 @@ class Audio extends Playable {
 
   Audio.network(
     this.path, {
-    Metas? metas,
-    Map<String, dynamic>? headers,
+    Metas metas,
+    Map<String, dynamic> headers,
     this.cached = false,
     this.playSpeed,
   })  : audioType = AudioType.network,
@@ -231,9 +231,9 @@ class Audio extends Playable {
 
   Audio.liveStream(
     this.path, {
-    Metas? metas,
+    Metas metas,
     this.playSpeed,
-    Map<String, dynamic>? headers,
+    Map<String, dynamic> headers,
   })  : audioType = AudioType.liveStream,
         package = null,
         _networkHeaders = headers,
@@ -267,11 +267,11 @@ class Audio extends Playable {
   }
 
   void updateMetas({
-    String? title,
-    String? artist,
-    String? album,
-    Map<String, dynamic>? extra,
-    MetasImage? image,
+    String title,
+    String artist,
+    String album,
+    Map<String, dynamic> extra,
+    MetasImage image,
   }) {
     this._metas = (_metas ?? Metas()).copyWith(
       title: title,
@@ -286,13 +286,13 @@ class Audio extends Playable {
   }
 
   Audio copyWith({
-    String? path,
-    String? package,
-    AudioType? audioType,
-    Metas? metas,
-    double? playSpeed,
-    Map<String, dynamic>? headers,
-    bool? cached,
+    String path,
+    String package,
+    AudioType audioType,
+    Metas metas,
+    double playSpeed,
+    Map<String, dynamic> headers,
+    bool cached,
   }) {
     return Audio._(
       path: path ?? this.path,
@@ -321,7 +321,7 @@ class Playlist extends Playable {
     }
   }
 
-  Playlist({List<Audio>? audios, int startIndex = 0}) {
+  Playlist({List<Audio> audios, int startIndex = 0}) {
     if (audios != null) {
       this.audios.addAll(audios);
     }
@@ -329,8 +329,8 @@ class Playlist extends Playable {
   }
 
   Playlist copyWith({
-    List<Audio>? audios,
-    int? startIndex,
+    List<Audio> audios,
+    int startIndex,
   }) {
     return new Playlist(
       audios: audios ?? this.audios,
@@ -422,7 +422,7 @@ class Playlist extends Playable {
 }
 
 void writeAudioMetasInto(
-    Map<String, dynamic> params, /* nullable */ Metas? metas) {
+    Map<String, dynamic> params, /* nullable */ Metas metas) {
   if (metas != null) {
     if (metas.title != null) params["song.title"] = metas.title;
     if (metas.artist != null) params["song.artist"] = metas.artist;
@@ -437,7 +437,7 @@ void writeAudioMetasInto(
 }
 
 void writeAudioImageMetasInto(
-    Map<String, dynamic> params, /* nullable */ MetasImage? metasImage,
+    Map<String, dynamic> params, /* nullable */ MetasImage metasImage,
     {String suffix = ""}) {
   if (metasImage != null) {
     params["song.image$suffix"] = metasImage.path;
@@ -447,9 +447,9 @@ void writeAudioImageMetasInto(
 }
 
 class PlayerGroupMetas {
-  final String? title;
-  final String? subTitle;
-  final MetasImage? image;
+  final String title;
+  final String subTitle;
+  final MetasImage image;
 
   PlayerGroupMetas({
     this.title,
