@@ -5,21 +5,21 @@ import 'package:flutter/widgets.dart';
 import '../assets_audio_player.dart';
 
 class AudioWidget extends StatefulWidget {
-  final Widget? child;
+  final Widget child;
 
-  final Audio? audio;
+  final Audio audio;
 
   final double volume;
   final bool play;
   final LoopMode loopMode;
-  final Function(Duration current, Duration? total)? onPositionChanged;
+  final Function(Duration current, Duration total) onPositionChanged;
 
-  final Function(Duration? totalDuration)? onReadyToPlay;
-  final Function()? onFinished;
-  final Duration? initialPosition;
+  final Function(Duration totalDuration) onReadyToPlay;
+  final Function() onFinished;
+  final Duration initialPosition;
 
   AudioWidget({
-    Key? key,
+    Key key,
     this.audio,
     this.child,
     this.volume = 1.0,
@@ -32,10 +32,10 @@ class AudioWidget extends StatefulWidget {
   }) : super(key: key);
 
   AudioWidget.assets({
-    Key? key,
-    required this.child,
-    required String path,
-    String? package,
+    Key key,
+    @required this.child,
+    @required String path,
+    String package,
     this.volume = 1.0,
     this.play = true,
     this.loopMode = LoopMode.none,
@@ -47,9 +47,9 @@ class AudioWidget extends StatefulWidget {
         super(key: key);
 
   AudioWidget.network({
-    Key? key,
-    required this.child,
-    required String url,
+    Key key,
+    @required this.child,
+    @required String url,
     this.volume = 1.0,
     this.play = true,
     this.loopMode = LoopMode.none,
@@ -61,9 +61,9 @@ class AudioWidget extends StatefulWidget {
         super(key: key);
 
   AudioWidget.file({
-    Key? key,
-    required this.child,
-    required String path,
+    Key key,
+    @required this.child,
+    @required String path,
     this.volume = 1.0,
     this.play = true,
     this.loopMode = LoopMode.none,
@@ -78,16 +78,16 @@ class AudioWidget extends StatefulWidget {
   _AudioWidgetState createState() => _AudioWidgetState();
 
   AudioWidget copyWith({
-    Widget? child,
-    Audio? audio,
-    double? volume,
-    bool? play,
-    LoopMode? loopMode,
-    Function(Duration current, Duration? total)? onPositionChanged,
-    Function(Duration? totalDuration)? onReadyToPlay,
-    Function()? onFinished,
-    Duration? initialPosition,
-    bool? controlledByPlaylist,
+    Widget child,
+    Audio audio,
+    double volume,
+    bool play,
+    LoopMode loopMode,
+    Function(Duration current, Duration total) onPositionChanged,
+    Function(Duration totalDuration) onReadyToPlay,
+    Function() onFinished,
+    Duration initialPosition,
+    bool controlledByPlaylist,
   }) {
     return AudioWidget(
       child: child ?? this.child,
@@ -104,12 +104,12 @@ class AudioWidget extends StatefulWidget {
 }
 
 class _AudioWidgetState extends State<AudioWidget> {
-  late AssetsAudioPlayer _player;
-  StreamSubscription? _currentPositionSubscription;
-  StreamSubscription? _onReadyToPlaySubscription;
-  StreamSubscription? _playlistAudioFinishedSubscription;
+  AssetsAudioPlayer _player;
+  StreamSubscription _currentPositionSubscription;
+  StreamSubscription _onReadyToPlaySubscription;
+  StreamSubscription _playlistAudioFinishedSubscription;
 
-  Duration? _totalDuration;
+  Duration _totalDuration;
 
   @override
   void initState() {
@@ -130,7 +130,7 @@ class _AudioWidgetState extends State<AudioWidget> {
     _onReadyToPlaySubscription = _player.onReadyToPlay.listen((audio) {
       if (widget.onReadyToPlay != null) {
         _totalDuration = audio.duration;
-        widget.onReadyToPlay!(_totalDuration);
+        widget.onReadyToPlay(_totalDuration);
       }
     });
 
@@ -139,13 +139,13 @@ class _AudioWidgetState extends State<AudioWidget> {
     _playlistAudioFinishedSubscription =
         _player.playlistAudioFinished.listen((event) {
       if (widget.onFinished != null) {
-        widget.onFinished!();
+        widget.onFinished();
       }
     });
 
     _currentPositionSubscription = _player.currentPosition.listen((current) {
       if (current != null && _totalDuration != null) {
-        widget.onPositionChanged!(current, _totalDuration);
+        widget.onPositionChanged(current, _totalDuration);
       }
     });
   }
@@ -188,7 +188,7 @@ class _AudioWidgetState extends State<AudioWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return widget.child;
   }
 
   void _clearSubscriptions() {

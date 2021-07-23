@@ -49,14 +49,14 @@ class AssetsAudioPlayerCacheManager {
     print(intoPath);
     if (_downloadingElements.containsKey(intoPath)) {
       //is already downloading it
-      final downloader = _downloadingElements[intoPath]!;
+      final downloader = _downloadingElements[intoPath];
       await downloader.wait(cacheDownloadListener);
     } else {
       try {
         final downloader = CacheDownloader();
         _downloadingElements[intoPath] = downloader;
         downloader.downloadAndSave(
-          url: audio.path!,
+          url: audio.path,
           savePath: intoPath,
           headers: audio.networkHeaders ?? {},
         );
