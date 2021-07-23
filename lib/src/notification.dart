@@ -8,7 +8,7 @@ typedef NotificationAction = void Function(AssetsAudioPlayer player);
 class AndroidResDrawable {
   final String name;
 
-  AndroidResDrawable({@required this.name});
+  AndroidResDrawable({required this.name});
 }
 
 @immutable
@@ -32,25 +32,25 @@ class NotificationSettings {
 
   //region customizers
   /// null for default behavior
-  final NotificationAction customNextAction;
+  final NotificationAction? customNextAction;
 
   /// null for default behavior
-  final NotificationAction customPlayPauseAction;
+  final NotificationAction? customPlayPauseAction;
 
   /// null for default behavior
-  final NotificationAction customPrevAction;
+  final NotificationAction? customPrevAction;
 
   /// null for default behavior
-  final NotificationAction customStopAction;
+  final NotificationAction? customStopAction;
 
   //no custom action for stop
 
   //custom icon
-  final AndroidResDrawable customNextIcon;
-  final AndroidResDrawable customPreviousIcon;
-  final AndroidResDrawable customPlayIcon;
-  final AndroidResDrawable customPauseIcon;
-  final AndroidResDrawable customStopIcon;
+  final AndroidResDrawable? customNextIcon;
+  final AndroidResDrawable? customPreviousIcon;
+  final AndroidResDrawable? customPlayIcon;
+  final AndroidResDrawable? customPauseIcon;
+  final AndroidResDrawable? customStopIcon;
 
   //endregion
 
@@ -94,7 +94,7 @@ void writeNotificationSettingsInto(
 }
 
 class ClickedNotification {
-  final String audioId;
+  final String? audioId;
 
   ClickedNotification({this.audioId});
 }
