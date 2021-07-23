@@ -9,8 +9,8 @@ typedef AudioKeyTransformer = Future<String> Function(Audio audio);
 
 class AssetsAudioPlayerCache {
   AssetsAudioPlayerCache({
-    @required this.cachePathProvider,
-    @required this.audioKeyTransformer,
+    required this.cachePathProvider,
+    required this.audioKeyTransformer,
   });
 
   final CachePathProvider cachePathProvider;
@@ -31,6 +31,6 @@ AssetsAudioPlayerCache defaultAssetsAudioPlayerCache = AssetsAudioPlayerCache(
     return '$dirPath/$key';
   },
   audioKeyTransformer: (audio) async {
-    return removeHttpSpecialCharsFromStrings(audio.path);
+    return removeHttpSpecialCharsFromStrings(audio.path!);
   },
 );

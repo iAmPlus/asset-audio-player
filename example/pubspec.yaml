@@ -10,15 +10,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  rxdart: ^0.24.1
+  rxdart: ^0.26.0
   # for local file test
-  dio: 3.0.9
-  path_provider: ^1.6.8
+  dio: ^4.0.0
+  path_provider: ^2.0.2
 
-  http: ^0.12.1
-  provider: ^4.1.2
+  http: ^0.13.3 #to download / cache network files
+  provider: ^5.0.0
 
-  file: ^5.0.4
+  file: ^6.1.2
 
   flutter_audio_query: ^0.3.4+1
   assets_audio_player:
@@ -27,7 +27,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_web_compilers: '>=1.0.0 <2.0.0'
+  build_web_compilers: 3.0.0
 
   # uncomment to use remote repos
   #assets_audio_player: ^2.0.1
