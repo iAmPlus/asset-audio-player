@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  rxdart: ^0.26.0
+  rxdart: ^0.27.1
   # for local file test
   dio: ^4.0.0
   path_provider: ^2.0.2
